@@ -2,59 +2,137 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程題庫-讀題與解析模式</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工程題庫-手機優化讀題版</title>
     <style>
         :root { --primary: #1e40af; --accent: #2563eb; --bg: #f8fafc; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .container { max-width: 900px; margin: 0 auto; background: white; min-height: 100vh; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-        .filter-section { position: sticky; top: 0; background: white; padding: 10px; z-index: 1000; border-bottom: 2px solid #e2e8f0; text-align: center; }
-        .unit-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 14px; border-radius: 15px; cursor: pointer; font-size: 14px; margin: 3px; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; overflow-x: hidden; }
+        
+        /* 頂部固定區優化：手機上改為可橫向捲動的單元列 */
+        .filter-section { 
+            position: sticky; 
+            top: 0; 
+            background: white; 
+            padding: 10px 5px; 
+            z-index: 1000; 
+            border-bottom: 2px solid #e2e8f0; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .unit-select-box { 
+            display: flex; 
+            flex-wrap: nowrap; /* 強制不換行 */
+            overflow-x: auto;  /* 開啟橫向捲動 */
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 5px;
+            gap: 8px;
+        }
+        
+        /* 隱藏橫向捲動條但保留功能 */
+        .unit-select-box::-webkit-scrollbar { display: none; }
+
+        .unit-btn { 
+            flex: 0 0 auto; /* 防止按鈕被壓縮 */
+            background: #f1f5f9; 
+            border: 1px solid #cbd5e1; 
+            padding: 8px 15px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            white-space: nowrap; /* 文字不換行 */
+        }
+        
         .unit-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .q-item { margin-bottom: 30px; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .q-meta { margin-bottom: 12px; font-size: 13px; color: #64748b; }
-        .q-id { background: #eff6ff; color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 10px; }
-        .q-text { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 15px; }
-        .opt-box { padding: 10px 15px; border-radius: 6px; border: 1px solid #f1f5f9; color: #475569; margin-bottom: 5px; }
-        .opt-box.is-correct { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: bold; position: relative; }
-        .opt-box.is-correct::after { content: "✓ 正確選項"; position: absolute; right: 15px; font-size: 12px; }
-        .ai-note { margin-top: 15px; padding: 12px; background: #fff7ed; border-left: 4px solid #f97316; font-size: 14px; color: #7c2d12; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 10px; }
+        
+        /* 題目卡片優化 */
+        .q-item { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            border-radius: 10px; 
+            background: white; 
+            border: 1px solid #e2e8f0; 
+        }
+        .q-meta { margin-bottom: 10px; font-size: 12px; color: #64748b; line-height: 1.4; }
+        .q-id { background: #eff6ff; color: var(--accent); padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+        .q-text { font-size: 17px; font-weight: bold; color: #1e293b; margin-bottom: 12px; line-height: 1.5; }
+        
+        .opt-box { padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9; color: #475569; margin-bottom: 8px; font-size: 15px; }
+        .opt-box.is-correct { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: bold; }
+
+        .ai-note { margin-top: 12px; padding: 10px; background: #fff7ed; border-left: 4px solid #f97316; border-radius: 4px; font-size: 14px; color: #7c2d12; }
+
+        #backToTop { position: fixed; bottom: 20px; right: 15px; width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; cursor: pointer; font-size: 20px; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="filter-section"><div id="unit-btns"></div></div>
-    <div id="read-list"></div>
+
+<div class="filter-section">
+    <div class="unit-select-box" id="unit-btns">
+        </div>
 </div>
+
+<div class="container">
+    <div id="read-list">正在載入題庫...</div>
+</div>
+
+<div id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</div>
+
 <script src="quiz_data.js"></script>
 <script>
     let currentUnit = '全部';
     const ansMap = {"A":0, "B":1, "C":2, "D":3};
+
     window.onload = () => {
+        if (typeof allQuestions === 'undefined') {
+            document.getElementById('read-list').innerHTML = "錯誤：找不到 quiz_data.js";
+            return;
+        }
         const units = ['全部', ...new Set(allQuestions.map(q => q.unit))];
-        document.getElementById('unit-btns').innerHTML = units.map(u => 
+        const btnContainer = document.getElementById('unit-btns');
+        btnContainer.innerHTML = units.map(u => 
             `<button class="unit-btn ${u==='全部'?'active':''}" onclick="filter('${u}', this)">${u}</button>`
         ).join('');
         render();
     };
+
     function filter(u, btn) {
         currentUnit = u;
         document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         render();
         window.scrollTo({top: 0});
+        // 讓選中的按鈕自動捲動到中間 (優化體驗)
+        btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
+
     function render() {
+        const list = document.getElementById('read-list');
         const data = currentUnit === '全部' ? allQuestions : allQuestions.filter(q => q.unit === currentUnit);
-        document.getElementById('read-list').innerHTML = data.map(q => `
+        
+        list.innerHTML = data.map(q => `
             <div class="q-item">
-                <div class="q-meta"><span class="q-id">題號 ${q.id}</span><span>${q.unit}</span></div>
+                <div class="q-meta">
+                    <span class="q-id">ID: ${q.id}</span><br>
+                    ${q.unit}
+                </div>
                 <div class="q-text">${q.q}</div>
-                <div>${q.o.map((opt, i) => `<div class="opt-box ${i === ansMap[q.a] ? 'is-correct' : ''}">${opt}</div>`).join('')}</div>
-                ${q.note ? `<div class="ai-note"><b>💡 AI 解析：</b>${q.note}</div>` : ''}
+                <div class="opt-list">
+                    ${q.o.map((opt, i) => `
+                        <div class="opt-box ${i === ansMap[q.a] ? 'is-correct' : ''}">
+                            ${opt} ${i === ansMap[q.a] ? ' ✓' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                ${q.note ? `<div class="ai-note">💡 ${q.note}</div>` : ''}
             </div>
         `).join('');
     }
+
+    window.onscroll = () => {
+        document.getElementById("backToTop").style.display = window.scrollY > 500 ? "flex" : "none";
+    };
 </script>
 </body>
 </html>
