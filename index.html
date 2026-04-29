@@ -3,67 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程題庫-下拉分類讀題版</title>
+    <title>工程題庫-智慧續讀版</title>
     <style>
         :root { --primary: #1e40af; --accent: #f59e0b; --bg: #f8fafc; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; }
         .container { max-width: 900px; margin: 0 auto; background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; }
         
-        /* 置頂控制列 */
         .header-nav { position: sticky; top: 0; background: white; padding: 12px; z-index: 1000; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        /* 下拉選單樣式 */
-        .filter-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .unit-select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 15px; background-color: #fff; color: #334155; cursor: pointer; }
+        .filter-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+        .unit-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; background: #fff; cursor: pointer; }
 
         .tools-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 10px; }
         
-        /* 題目樣式 */
-        .q-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; cursor: pointer; position: relative; }
-        .q-meta { color: #64748b; font-size: 0.82rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+        .q-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; cursor: pointer; border-left: 5px solid transparent; }
+        .q-item:active { background: #f0f9ff; }
+        .q-meta { color: #64748b; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
         .q-text { font-weight: bold; font-size: 1.1rem; line-height: 1.5; margin-bottom: 12px; display: block; color: #1e293b; }
-        .opt { display: block; margin-bottom: 6px; color: #475569; padding: 6px 10px; border-radius: 6px; background: #f8fafc; font-size: 1rem; }
+        .opt { display: block; margin-bottom: 8px; color: #475569; padding: 8px; border-radius: 6px; background: #f8fafc; }
         
-        /* 答案區域 */
-        .ans-area { margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: bold; border-left: 5px solid #22c55e; display: none; }
+        .ans-area { margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: bold; border: 1px solid #bbf7d0; display: none; }
         .ans-area.show { display: block; }
 
-        /* 浮動按鈕 */
         .float-btns { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
-        .f-btn { width: 55px; height: 55px; border-radius: 50%; border: none; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.3s; }
-        #resume-btn { background: var(--accent); display: none; font-size: 0.8rem; }
-        #top-btn { background: var(--primary); font-size: 1.2rem; }
+        .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        #resume-btn { background: var(--accent); display: none; font-size: 0.8rem; line-height: 1.2; }
+        #top-btn { background: var(--primary); font-size: 1.5rem; }
 
-        .btn { padding: 8px 14px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
-        input[type="number"] { border: 1px solid #cbd5e1; border-radius: 6px; padding: 7px; width: 60px; }
+        .btn { padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="header-nav">
     <div class="filter-row">
-        <label style="font-size: 13px; font-weight: bold; color: #64748b;">請選擇測驗單元：</label>
-        <select id="unit-dropdown" class="unit-select" onchange="handleSelectChange(this.value)">
-            </select>
+        <select id="unit-dropdown" class="unit-select" onchange="handleSelectChange(this.value)"></select>
     </div>
-    
     <div class="tools-row">
-        <span id="status-text" style="font-weight:bold; color:var(--primary); font-size:14px;">載入中...</span>
-        <div>
-            <button class="btn" onclick="toggleAllAns()" style="background:#64748b; font-size: 12px;">全顯/隱答案</button>
-        </div>
-        <div style="font-size: 13px;">
-            跳題：<input type="number" id="jump-id" placeholder="No.">
-            <button class="btn" onclick="jumpTo()" style="padding: 6px 10px;">Go</button>
+        <span id="status-text" style="font-weight:bold; color:var(--primary);">載入中...</span>
+        <button class="btn" onclick="toggleAllAns()" style="background:#64748b;">顯/隱答案</button>
+        <div style="font-size: 14px;">
+            跳題：<input type="number" id="jump-id" style="width:50px; padding:5px; border-radius:4px; border:1px solid #ccc;">
+            <button class="btn" onclick="jumpTo()" style="padding:5px 10px;">Go</button>
         </div>
     </div>
 </div>
 
 <div class="container">
     <div id="main-list"></div>
-    <div id="pagination" style="text-align: center; margin-top: 25px; padding-bottom: 20px; display:none;">
-        <button class="btn" onclick="changePage(-1)" style="width: 100px;">上一頁</button>
-        <button class="btn" onclick="changePage(1)" style="width: 100px; margin-left:15px;">下一頁</button>
+    <div id="pagination" style="text-align: center; margin-top: 25px; display:none;">
+        <button class="btn" onclick="changePage(-1)">上一頁</button>
+        <button class="btn" onclick="changePage(1)" style="margin-left:20px;">下一頁</button>
     </div>
 </div>
 
@@ -103,18 +92,18 @@
     window.onload = () => {
         if (typeof allQuestions === 'undefined') return;
 
+        // 初始化題目單元標籤
         allQuestions.forEach(q => {
             const idNum = parseInt(q.id);
             const found = UNIT_CONFIG.find(u => idNum >= u[0] && idNum <= u[1]);
             q.unit = found ? found[2] : "其他";
         });
 
-        // 生成下拉選單內容
+        // 下拉選單
         const dropdown = document.getElementById('unit-dropdown');
-        const unitList = ['全部', ...UNIT_CONFIG.map(u => u[2])];
-        dropdown.innerHTML = unitList.map(u => `<option value="${u}">${u}</option>`).join('');
+        dropdown.innerHTML = ['全部', ...UNIT_CONFIG.map(u => u[2])].map(u => `<option value="${u}">${u}</option>`).join('');
 
-        // 讀取書籤
+        // 檢查上次書籤
         const savedId = localStorage.getItem('read_exact_id');
         if (savedId) {
             document.getElementById('resume-btn').style.display = 'block';
@@ -141,34 +130,20 @@
     function render() {
         const list = document.getElementById('main-list');
         const displayData = filteredData.slice(startIdx, startIdx + pageSize);
-        
         document.getElementById('status-text').innerText = `${currentUnit} (${startIdx+1}~${Math.min(startIdx+pageSize, filteredData.length)})`;
         
         list.innerHTML = displayData.map((q, i) => `
             <div class="q-item" id="q-block-${q.id}" data-real-id="${q.id}" onclick="toggleAns('${q.id}')">
-                <div class="q-meta">
-                    <span>題號 ${q.id}</span>
-                    <span>${q.unit}</span>
-                </div>
+                <div class="q-meta"><span>#${q.id}</span><span>${q.unit}</span></div>
                 <span class="q-text">${q.q}</span>
-                <div class="opt-list">
-                    ${q.o.map(opt => `<span class="opt">${opt}</span>`).join('')}
-                </div>
-                <div class="ans-area ${allShow ? 'show' : ''}" id="ans-${q.id}">
-                    💡 正確答案：(${q.a})
-                </div>
+                <div class="opt-list">${q.o.map(opt => `<span class="opt">${opt}</span>`).join('')}</div>
+                <div class="ans-area ${allShow ? 'show' : ''}" id="ans-${q.id}">💡 答案：(${q.a})</div>
             </div>
         `).join('');
     }
 
-    function toggleAns(id) {
-        document.getElementById(`ans-${id}`).classList.toggle('show');
-    }
-
-    function toggleAllAns() {
-        allShow = !allShow;
-        render();
-    }
+    function toggleAns(id) { document.getElementById(`ans-${id}`).classList.toggle('show'); }
+    function toggleAllAns() { allShow = !allShow; render(); }
 
     function changePage(dir) {
         let next = startIdx + (dir * pageSize);
@@ -179,27 +154,29 @@
         }
     }
 
-    function jumpTo() {
-        const val = parseInt(document.getElementById('jump-id').value);
+    // 核心修正：跳轉功能的整合
+    function jumpTo(targetId = null) {
+        const val = targetId || parseInt(document.getElementById('jump-id').value);
         if (!val) return;
         
-        const targetIdxInAll = allQuestions.findIndex(q => q.id == val);
-        if (targetIdxInAll !== -1) {
-            const targetQ = allQuestions[targetIdxInAll];
+        const targetQ = allQuestions.find(q => q.id == val);
+        if (targetQ) {
+            // 1. 強制同步下拉選單
             currentUnit = targetQ.unit;
             document.getElementById('unit-dropdown').value = currentUnit;
             updateFilteredData();
             
+            // 2. 計算在該單元中的頁碼
             const idxInFiltered = filteredData.findIndex(q => q.id == val);
             startIdx = Math.floor(idxInFiltered / pageSize) * pageSize;
             
             render();
+            
+            // 3. 捲動到該題目
             setTimeout(() => {
                 const el = document.getElementById(`q-block-${val}`);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 300);
-        } else {
-            alert("找不到該題號");
         }
     }
 
@@ -210,18 +187,15 @@
             if (r.top >= 0 && r.top <= 200) {
                 const id = item.getAttribute('data-real-id');
                 localStorage.setItem('read_exact_id', id);
-                localStorage.setItem('read_start_idx', startIdx);
                 break;
             }
         }
+        document.getElementById('top-btn').style.display = window.pageYOffset > 500 ? 'block' : 'none';
     };
 
     function goToLastBookmark() {
         const savedId = localStorage.getItem('read_exact_id');
-        if (savedId) {
-            document.getElementById('jump-id').value = savedId;
-            jumpTo();
-        }
+        if (savedId) jumpTo(savedId);
     }
 </script>
 </body>
