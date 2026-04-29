@@ -3,84 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程題庫-手機下拉版</title>
+    <title>工程題庫-循序讀題與背誦</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #f8fafc; margin: 0; padding: 0; }
-        .header-fixed { position: sticky; top: 0; background: #1e40af; color: white; padding: 10px; z-index: 1000; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        :root { --primary: #1e40af; --accent: #f59e0b; --bg: #f8fafc; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; min-height: 100vh; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.05); padding-bottom: 100px; }
         
-        /* 下拉選單樣式：這會節省極大空間 */
-        #unit-select { 
-            width: 95%; 
-            padding: 12px; 
-            font-size: 16px; 
-            border-radius: 8px; 
-            border: none; 
-            margin-top: 5px;
-            background: white;
-            font-weight: bold;
-        }
+        /* 置頂控制列 */
+        .header-nav { position: sticky; top: 0; background: white; padding: 15px; z-index: 1000; border-bottom: 2px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; }
+        .page-info { font-weight: bold; color: var(--primary); }
+        
+        /* 題目樣式 */
+        .q-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
+        .q-item:hover { border-color: var(--primary); background: #f0f9ff; }
+        .q-id { color: #64748b; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
+        .q-text { font-weight: bold; font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; display: block; }
+        .opt-list { color: #475569; font-size: 1rem; }
+        .opt { display: block; margin-bottom: 5px; }
+        
+        /* 答案區域 (預設隱藏) */
+        .ans-area { margin-top: 15px; padding: 12px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: bold; border: 1px solid #bbf7d0; display: none; }
+        .ans-area.show { display: block; }
 
-        .container { max-width: 900px; margin: 0 auto; padding: 15px; }
-        .q-item { background: white; margin-bottom: 20px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .q-meta { font-size: 12px; color: #64748b; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
-        .q-text { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 15px; line-height: 1.4; }
-        
-        .opt-box { padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9; margin-bottom: 8px; font-size: 16px; color: #475569; }
-        .is-correct { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: bold; }
-        
-        .ai-note { margin-top: 10px; padding: 10px; background: #fff7ed; border-left: 4px solid #f97316; font-size: 14px; color: #7c2d12; border-radius: 4px; }
+        /* 浮動按鈕區 */
+        .float-btns { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+        .f-btn { width: 55px; height: 55px; border-radius: 50%; border: none; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        #resume-btn { background: var(--accent); display: none; font-size: 0.8rem; }
+        #top-btn { background: var(--primary); font-size: 1.2rem; }
+
+        .btn { padding: 8px 15px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
     </style>
 </head>
 <body>
 
-<div class="header-fixed">
-    <div style="font-size: 14px; opacity: 0.9;">選擇章節：</div>
-    <select id="unit-select" onchange="filter(this.value)">
-        </select>
+<div class="header-nav">
+    <div class="page-info" id="status-text">載入中...</div>
+    <div>
+        <button class="btn btn-outline" onclick="toggleAllAns()">一鍵顯示/隱藏答案</button>
+    </div>
+    <div style="font-size: 0.9rem;">
+        跳至題號：<input type="number" id="jump-id" style="width:60px; padding:4px;" placeholder="1">
+        <button class="btn" onclick="jumpTo()">跳轉</button>
+    </div>
 </div>
 
-<div class="container" id="read-list">
+<div class="container">
+    <div id="main-list"></div>
+    <div style="text-align: center; margin-top: 30px;">
+        <button class="btn" style="width:120px;" onclick="changePage(-1)">上一頁 (50題)</button>
+        <button class="btn" style="width:120px; margin-left:15px;" onclick="changePage(1)">下一頁 (50題)</button>
     </div>
+</div>
+
+<div class="float-btns">
+    <button id="resume-btn" class="f-btn" onclick="goToLastBookmark()">續讀<br><span id="last-num"></span></button>
+    <button id="top-btn" class="f-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+</div>
 
 <script src="quiz_data.js"></script>
 <script>
-    let currentUnit = '全部';
-    const ansMap = {"A":0, "B":1, "C":2, "D":3};
+    let pageSize = 50;
+    let startIdx = 0;
+    let allShow = false;
 
     window.onload = () => {
-        if (typeof allQuestions === 'undefined') {
-            document.getElementById('read-list').innerHTML = "載入失敗，請檢查 quiz_data.js";
-            return;
+        if (typeof allQuestions === 'undefined') return;
+        
+        // 讀取進度紀錄
+        const savedIdx = localStorage.getItem('read_start_idx');
+        const savedId = localStorage.getItem('read_exact_id');
+        
+        if (savedIdx) {
+            startIdx = parseInt(savedIdx);
+            document.getElementById('resume-btn').style.display = 'block';
+            document.getElementById('last-num').innerText = savedId || "";
         }
-        // 產生下拉選單內容
-        const units = ['全部', ...new Set(allQuestions.map(q => q.unit))];
-        const select = document.getElementById('unit-select');
-        select.innerHTML = units.map(u => `<option value="${u}">${u}</option>`).join('');
         render();
     };
 
-    function filter(u) {
-        currentUnit = u;
-        render();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
     function render() {
-        const list = document.getElementById('read-list');
-        const data = currentUnit === '全部' ? allQuestions : allQuestions.filter(q => q.unit === currentUnit);
+        const list = document.getElementById('main-list');
+        const data = allQuestions.slice(startIdx, startIdx + pageSize);
         
-        list.innerHTML = data.map(q => `
-            <div class="q-item">
-                <div class="q-meta">題號 ${q.id} | ${q.unit}</div>
-                <div class="q-text">${q.q}</div>
-                <div>
-                    ${q.o.map((opt, i) => `
-                        <div class="opt-box ${i === ansMap[q.a] ? 'is-correct' : ''}">${opt}</div>
-                    `).join('')}
+        document.getElementById('status-text').innerText = `第 ${startIdx + 1} ~ ${Math.min(startIdx + pageSize, allQuestions.length)} 題 / 共 2878 題`;
+        
+        list.innerHTML = data.map((q, i) => `
+            <div class="q-item" id="q-block-${startIdx + i}" data-real-id="${q.id}" onclick="toggleAns(${i})">
+                <div class="q-id">題號 ${q.id}</div>
+                <span class="q-text">${q.q}</span>
+                <div class="opt-list">
+                    ${q.o.map(opt => `<span class="opt">${opt}</span>`).join('')}
                 </div>
-                ${q.note ? `<div class="ai-note">💡 ${q.note}</div>` : ''}
+                <div class="ans-area ${allShow ? 'show' : ''}" id="ans-${i}">
+                    💡 正確答案：(${q.a})
+                </div>
             </div>
         `).join('');
+        
+        localStorage.setItem('read_start_idx', startIdx);
+    }
+
+    // 遮蓋練習：點擊題目顯示答案
+    function toggleAns(i) {
+        document.getElementById(`ans-${i}`).classList.toggle('show');
+    }
+
+    function toggleAllAns() {
+        allShow = !allShow;
+        render();
+    }
+
+    // 分頁控制
+    function changePage(dir) {
+        let next = startIdx + (dir * pageSize);
+        if (next >= 0 && next < allQuestions.length) {
+            startIdx = next;
+            render();
+            window.scrollTo(0, 0);
+        }
+    }
+
+    // 大跨度跳題
+    function jumpTo() {
+        const val = parseInt(document.getElementById('jump-id').value);
+        if (val >= 1 && val <= allQuestions.length) {
+            startIdx = Math.floor((val - 1) / pageSize) * pageSize;
+            render();
+            setTimeout(() => {
+                const el = document.querySelector(`[data-real-id="${val}"]`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        } else {
+            alert("請輸入 1 到 2878 之間的數字");
+        }
+    }
+
+    // 自動書籤：捲動時記住頂端題號
+    window.onscroll = () => {
+        const items = document.querySelectorAll('.q-item');
+        for (let item of items) {
+            const r = item.getBoundingClientRect();
+            if (r.top >= 0 && r.top <= 150) {
+                const id = item.getAttribute('data-real-id');
+                localStorage.setItem('read_exact_id', id);
+                break;
+            }
+        }
+    };
+
+    // 續讀跳轉
+    function goToLastBookmark() {
+        const savedId = localStorage.getItem('read_exact_id');
+        if (savedId) {
+            // 先確保在該頁
+            startIdx = Math.floor((parseInt(savedId) - 1) / pageSize) * pageSize;
+            render();
+            setTimeout(() => {
+                const el = document.querySelector(`[data-real-id="${savedId}"]`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
     }
 </script>
 </body>
