@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程題庫-全功能整合版</title>
+    <title>工程題庫-全功能整合讀題版</title>
     <style>
         :root { --primary: #1e40af; --accent: #f59e0b; --bg: #f8fafc; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; }
@@ -11,17 +11,17 @@
         
         /* 置頂控制列 */
         .header-nav { position: sticky; top: 0; background: white; padding: 10px; z-index: 1000; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .filter-section { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; justify-content: center; }
-        .unit-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-size: 13px; }
+        .filter-section { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; justify-content: center; max-height: 150px; overflow-y: auto; padding: 5px; background: #fdfdfd; border-radius: 8px; }
+        .unit-btn { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; transition: 0.2s; }
         .unit-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         .tools-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 10px; }
         
         /* 題目樣式 */
-        .q-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; cursor: pointer; }
-        .q-meta { color: #64748b; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .q-text { font-weight: bold; font-size: 1.1rem; line-height: 1.5; margin-bottom: 12px; display: block; }
-        .opt { display: block; margin-bottom: 6px; color: #475569; padding: 4px 8px; border-radius: 4px; }
+        .q-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; cursor: pointer; position: relative; }
+        .q-meta { color: #64748b; font-size: 0.82rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+        .q-text { font-weight: bold; font-size: 1.1rem; line-height: 1.5; margin-bottom: 12px; display: block; color: #1e293b; }
+        .opt { display: block; margin-bottom: 6px; color: #475569; padding: 4px 8px; border-radius: 4px; background: #f8fafc; font-size: 0.95rem; }
         
         /* 答案區域 */
         .ans-area { margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: bold; border-left: 5px solid #22c55e; display: none; }
@@ -29,11 +29,12 @@
 
         /* 浮動按鈕 */
         .float-btns { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
-        .f-btn { width: 55px; height: 55px; border-radius: 50%; border: none; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .f-btn { width: 55px; height: 55px; border-radius: 50%; border: none; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.3s; }
         #resume-btn { background: var(--accent); display: none; font-size: 0.8rem; }
         #top-btn { background: var(--primary); font-size: 1.2rem; }
 
         .btn { padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        input[type="number"] { border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px; }
     </style>
 </head>
 <body>
@@ -42,12 +43,12 @@
     <div class="filter-section" id="unit-btns"></div>
     
     <div class="tools-row">
-        <span id="status-text" style="font-weight:bold; color:var(--primary); font-size:14px;">載入中...</span>
+        <span id="status-text" style="font-weight:bold; color:var(--primary); font-size:13px;">載入中...</span>
         <div>
-            <button class="btn" onclick="toggleAllAns()" style="background:#64748b;">全顯/隱藏答案</button>
+            <button class="btn" onclick="toggleAllAns()" style="background:#64748b;">全顯/隱答案</button>
         </div>
-        <div style="font-size: 14px;">
-            跳題：<input type="number" id="jump-id" style="width:50px;" placeholder="No.">
+        <div style="font-size: 13px;">
+            題號跳轉：<input type="number" id="jump-id" style="width:55px;" placeholder="No.">
             <button class="btn" onclick="jumpTo()">Go</button>
         </div>
     </div>
@@ -55,7 +56,7 @@
 
 <div class="container">
     <div id="main-list"></div>
-    <div id="pagination" style="text-align: center; margin-top: 20px;">
+    <div id="pagination" style="text-align: center; margin-top: 20px; display:none;">
         <button class="btn" onclick="changePage(-1)">上一頁</button>
         <button class="btn" onclick="changePage(1)" style="margin-left:10px;">下一頁</button>
     </div>
@@ -68,6 +69,27 @@
 
 <script src="quiz_data.js"></script>
 <script>
+    // 1. 定義單元範圍 (這是您剛剛提供的最新分類)
+    const UNIT_CONFIG = [
+        [1, 222, "單元二：第三章 品質分析方法與應用"],
+        [223, 402, "單元二：第二章 統計分析方法與應用"],
+        [403, 598, "單元二：第一章 監造計畫與品質計畫指導"],
+        [599, 649, "永續公共工程"],
+        [650, 797, "單元一：第三章 公共工程履約管理"],
+        [798, 1123, "單元一：第二章 公共工程管理相關法規概要"],
+        [1124, 1221, "單元二：第六章 建築工程之界面整合"],
+        [1222, 1382, "單元二：第五章 電梯設備工程品質管理"],
+        [1383, 1652, "單元二：第四章 消防設備及空調設備工程品質管理實務"],
+        [1653, 1820, "單元二：第三章 給排水衛生設備工程品質管理實務"],
+        [1821, 2052, "單元二：第二章 弱電(含中央監控)設備工程品質管理實務"],
+        [2053, 2194, "單元二：第一章 電氣設備工程品質管理實務"],
+        [2195, 2385, "單元二：第六章 工程品質稽核"],
+        [2386, 2606, "單元二：第五章 施工管制與檢驗"],
+        [2607, 2836, "單元二：第四章 工程進料檢驗與管制"],
+        [2837, 2866, "單元一：第一章 公共工程施工品質管理制度理念與導入"],
+        [2867, 2878, "政府採購全生命週期概論"]
+    ];
+
     let currentUnit = '全部';
     let startIdx = 0;
     let pageSize = 50;
@@ -76,20 +98,26 @@
 
     window.onload = () => {
         if (typeof allQuestions === 'undefined') return;
-        
-        // 初始化單元按鈕 (原本的功能)
-        const units = ['全部', ...new Set(allQuestions.map(q => q.unit))];
-        document.getElementById('unit-btns').innerHTML = units.map(u => 
+
+        // 為所有題目動態打上單元標籤
+        allQuestions.forEach(q => {
+            const idNum = parseInt(q.id);
+            const found = UNIT_CONFIG.find(u => idNum >= u[0] && idNum <= u[1]);
+            q.unit = found ? found[2] : "其他";
+        });
+
+        // 生成單元按鈕
+        const unitList = ['全部', ...UNIT_CONFIG.map(u => u[2])];
+        document.getElementById('unit-btns').innerHTML = unitList.map(u => 
             `<button class="unit-btn ${u==='全部'?'active':''}" onclick="filterUnit('${u}', this)">${u}</button>`
         ).join('');
 
         // 讀取進度
         const savedIdx = localStorage.getItem('read_start_idx');
         const savedId = localStorage.getItem('read_exact_id');
-        if (savedIdx) {
-            startIdx = parseInt(savedIdx);
+        if (savedId) {
             document.getElementById('resume-btn').style.display = 'block';
-            document.getElementById('last-num').innerText = savedId || "";
+            document.getElementById('last-num').innerText = savedId;
         }
 
         updateFilteredData();
@@ -100,7 +128,7 @@
         currentUnit = u;
         document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        startIdx = 0; // 切換單元從頭開始
+        startIdx = 0; 
         updateFilteredData();
         render();
         window.scrollTo(0,0);
@@ -108,6 +136,7 @@
 
     function updateFilteredData() {
         filteredData = currentUnit === '全部' ? allQuestions : allQuestions.filter(q => q.unit === currentUnit);
+        document.getElementById('pagination').style.display = filteredData.length > pageSize ? 'block' : 'none';
     }
 
     function render() {
@@ -117,7 +146,7 @@
         document.getElementById('status-text').innerText = `${currentUnit} (${startIdx+1}~${Math.min(startIdx+pageSize, filteredData.length)})`;
         
         list.innerHTML = displayData.map((q, i) => `
-            <div class="q-item" id="q-block-${startIdx + i}" data-real-id="${q.id}" onclick="toggleAns(${i})">
+            <div class="q-item" id="q-block-${q.id}" data-real-id="${q.id}" onclick="toggleAns('${q.id}')">
                 <div class="q-meta">
                     <span>題號 ${q.id}</span>
                     <span>${q.unit}</span>
@@ -126,17 +155,15 @@
                 <div class="opt-list">
                     ${q.o.map(opt => `<span class="opt">${opt}</span>`).join('')}
                 </div>
-                <div class="ans-area ${allShow ? 'show' : ''}" id="ans-${i}">
+                <div class="ans-area ${allShow ? 'show' : ''}" id="ans-${q.id}">
                     💡 正確答案：(${q.a})
                 </div>
             </div>
         `).join('');
-        
-        localStorage.setItem('read_start_idx', startIdx);
     }
 
-    function toggleAns(i) {
-        document.getElementById(`ans-${i}`).classList.toggle('show');
+    function toggleAns(id) {
+        document.getElementById(`ans-${id}`).classList.toggle('show');
     }
 
     function toggleAllAns() {
@@ -155,17 +182,28 @@
 
     function jumpTo() {
         const val = parseInt(document.getElementById('jump-id').value);
-        const targetIdx = allQuestions.findIndex(q => q.id == val);
-        if (targetIdx !== -1) {
-            currentUnit = '全部'; // 跳轉時切換到全部以確保找得到
-            document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.unit-btn')[0].classList.add('active');
+        if (!val) return;
+        
+        const targetIdxInAll = allQuestions.findIndex(q => q.id == val);
+        if (targetIdxInAll !== -1) {
+            // 自動判斷該題屬於哪個單元
+            const targetQ = allQuestions[targetIdxInAll];
+            currentUnit = targetQ.unit;
+            
+            // 更新 UI 上的單元按鈕狀態
+            document.querySelectorAll('.unit-btn').forEach(b => {
+                b.classList.toggle('active', b.innerText === currentUnit);
+            });
+
             updateFilteredData();
             
-            startIdx = Math.floor(targetIdx / pageSize) * pageSize;
+            // 找出該題在該單元過濾後的索引位置
+            const idxInFiltered = filteredData.findIndex(q => q.id == val);
+            startIdx = Math.floor(idxInFiltered / pageSize) * pageSize;
+            
             render();
             setTimeout(() => {
-                const el = document.querySelector(`[data-real-id="${val}"]`);
+                const el = document.getElementById(`q-block-${val}`);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 300);
         } else {
@@ -173,13 +211,16 @@
         }
     }
 
+    // 自動書籤邏輯
     window.onscroll = () => {
         const items = document.querySelectorAll('.q-item');
         for (let item of items) {
             const r = item.getBoundingClientRect();
-            if (r.top >= 0 && r.top <= 150) {
+            if (r.top >= 0 && r.top <= 200) {
                 const id = item.getAttribute('data-real-id');
                 localStorage.setItem('read_exact_id', id);
+                // 同時存下目前的 startIdx 方便跨頁續讀
+                localStorage.setItem('read_start_idx', startIdx);
                 break;
             }
         }
@@ -187,12 +228,10 @@
 
     function goToLastBookmark() {
         const savedId = localStorage.getItem('read_exact_id');
-        if (savedId) jumpToTargetId(savedId);
-    }
-
-    function jumpToTargetId(id) {
-        document.getElementById('jump-id').value = id;
-        jumpTo();
+        if (savedId) {
+            document.getElementById('jump-id').value = savedId;
+            jumpTo();
+        }
     }
 </script>
 </body>
