@@ -2,97 +2,154 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>題庫自動分類工具</title>
+    <title>工程題庫拼裝工具 - 精準解析版</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
-        .box { border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 20px; }
-        textarea { width: 100%; height: 200px; margin-top: 10px; }
-        button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f1f5f9; padding: 40px; color: #334155; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { color: #1e40af; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-top: 0; }
+        .step { margin-bottom: 25px; }
+        .step-title { font-weight: bold; margin-bottom: 10px; display: block; color: #475569; }
+        input[type="file"] { width: 100%; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 6px; cursor: pointer; }
+        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #1e40af; }
+        #status { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+        .success { background: #ecfdf5; color: #065f46; border: 1px solid #10b981; }
     </style>
 </head>
 <body>
-    <h2>🛠️ 題庫分類與解析拼裝器 (免安裝版)</h2>
-    <div class="box">
-        <p>1. 請點擊下方按鈕，選擇您的 <b>quiz_data.js</b> 檔案</p>
+
+<div class="container">
+    <h2>🛠️ 題庫分類與解析拼裝器</h2>
+    
+    <div class="step">
+        <span class="step-title">1. 選擇您的原始 quiz_data.js 檔案：</span>
         <input type="file" id="fileInput" accept=".js">
     </div>
-    <div class="box">
-        <p>2. 點擊開始拼裝</p>
+
+    <div class="step">
+        <span class="step-title">2. 執行處理：</span>
         <button onclick="processData()">開始拼裝並下載新檔</button>
     </div>
-    <p id="status"></p>
 
-    <script>
-        // 您的單元區間清單
-        const UNIT_RANGES = [
-            [1, 222, "單元二：第三章 品質分析方法與應用"],
-            [223, 402, "單元二：第二章 統計分析方法與應用"],
-            [403, 598, "單元二：第一章 監造計畫與品質計畫指導"],
-            [599, 649, "永續公共工程"],
-            [650, 797, "單元一：第三章 公共工程履約管理"],
-            [798, 1123, "單元一：第二章 公共工程管理相關法規概要"],
-            [1124, 1221, "單元二：第六章 建築工程之界面整合"],
-            [1222, 1382, "單元二：第五章 電梯設備工程品質管理"],
-            [1383, 1652, "單元二：第四章 消防設備及空調設備工程品質管理實務"],
-            [1653, 1820, "單元二：第三章 給排水衛生設備工程品質管理實務"],
-            [1821, 2052, "單元二：第二章 弱電(含中央監控)設備工程品質管理實務"],
-            [2053, 2194, "單元二：第一章 電氣設備工程品質管理實務"],
-            [2195, 2385, "單元二：第六章 工程品質稽核"],
-            [2386, 2606, "單元二：第五章 施工管制與檢驗"],
-            [2607, 2836, "單元二：第四章 工程進料檢驗與管制"],
-            [2837, 2866, "單元一：第一章 公共工程施工品質管理制度理念與導入"],
-            [2867, 2878, "政府採購全生命週期概論"]
-        ];
+    <div id="status"></div>
+</div>
 
-        function getUnit(qid) {
-            for (let [start, end, name] of UNIT_RANGES) {
-                if (qid >= start && qid <= end) return name;
+<script>
+    // 17 個單元區間定義
+    const UNIT_RANGES = [
+        [1, 222, "單元二：第三章 品質分析方法與應用"],
+        [223, 402, "單元二：第二章 統計分析方法與應用"],
+        [403, 598, "單元二：第一章 監造計畫與品質計畫指導"],
+        [599, 649, "永續公共工程"],
+        [650, 797, "單元一：第三章 公共工程履約管理"],
+        [798, 1123, "單元一：第二章 公共工程管理相關法規概要"],
+        [1124, 1221, "單元二：第六章 建築工程之界面整合"],
+        [1222, 1382, "單元二：第五章 電梯設備工程品質管理"],
+        [1383, 1652, "單元二：第四章 消防設備及空調設備工程品質管理實務"],
+        [1653, 1820, "單元二：第三章 給排水衛生設備工程品質管理實務"],
+        [1821, 2052, "單元二：第二章 弱電(含中央監控)設備工程品質管理實務"],
+        [2053, 2194, "單元二：第一章 電氣設備工程品質管理實務"],
+        [2195, 2385, "單元二：第六章 工程品質稽核"],
+        [2386, 2606, "單元二：第五章 施工管制與檢驗"],
+        [2607, 2836, "單元二：第四章 工程進料檢驗與管制"],
+        [2837, 2866, "單元一：第一章 公共工程施工品質管理制度理念與導入"],
+        [2867, 2878, "政府採購全生命週期概論"]
+    ];
+
+    function getUnit(qid) {
+        for (let [start, end, name] of UNIT_RANGES) {
+            if (qid >= start && qid <= end) return name;
+        }
+        return "其他單元";
+    }
+
+    function getNote(q, a, unit) {
+        // 優先判斷單元 (Unit Based)
+        if (unit.includes("電氣") || unit.includes("弱電")) {
+            return "解析：重點在於接地電阻規範、管路彎曲半徑及配線顏色辨識。須注意屋內線路裝置規則要求。";
+        }
+        if (unit.includes("給排水") || unit.includes("消防")) {
+            return "解析：水務核心在於管材壓接與壓力試驗；消防則需嚴格遵循防火區劃與耐燃規定。";
+        }
+        if (unit.includes("電梯") || unit.includes("空調")) {
+            return "解析：安裝重點在於避震處理、防護裝置測試及冷凝水排出的流暢性。";
+        }
+        if (unit.includes("統計") || unit.includes("品質分析")) {
+            return "解析：區分計數值與計量值。利用管制圖監測製程是否處於穩定狀態。";
+        }
+        if (unit.includes("採購") || unit.includes("履約") || unit.includes("法規")) {
+            return "解析：重點在於工期異動、估驗計價程序及採購法公平競爭原則。";
+        }
+        if (unit.includes("進料") || unit.includes("施工管制") || unit.includes("品質計畫")) {
+            return "解析：落實三級品管架構。施工單位應進行自主檢查，監造單位負責抽查驗。";
+        }
+
+        // 其次判斷題目內容關鍵字 (Keyword Based)
+        if (q.includes("天") || q.includes("日")) {
+            return "解析：需區分日曆天與工作天，留意開工、峻工與驗收之法定限期規定。";
+        }
+        if (q.includes("QC") || q.includes("手法")) {
+            return "解析：N7 偏重計畫階段的邏輯分析；Q7 偏重執行階段的數據統計。";
+        }
+        if (q.includes("%") || q.includes("百分比")) {
+            return "解析：留意各項驗收門檻、估驗款撥付比例或罰款上限之法定百分比。";
+        }
+
+        // 沒對到則保持空白
+        return "";
+    }
+
+    function processData() {
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        
+        if (!fileInput.files.length) {
+            alert("請先選擇檔案！");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            let content = e.target.result;
+            try {
+                // 擷取 JSON 陣列部分
+                let start = content.indexOf('[');
+                let end = content.lastIndexOf(']') + 1;
+                let questions = JSON.parse(content.substring(start, end));
+
+                // 開始拼裝
+                questions.forEach(q => {
+                    let idNum = parseInt(q.id);
+                    q.unit = getUnit(idNum);
+                    q.note = getNote(q.q, q.a, q.unit);
+                });
+
+                // 產生新檔案內容
+                let finalContent = "const allQuestions = " + JSON.stringify(questions, null, 2) + ";";
+                
+                // 下載檔案
+                let blob = new Blob([finalContent], {type: "text/javascript"});
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = "quiz_data.js";
+                a.click();
+
+                status.style.display = "block";
+                status.className = "success";
+                status.innerText = "✅ 處理完成！請將下載的 quiz_data.js 上傳至 GitHub 覆蓋舊檔。";
+                
+            } catch (err) {
+                alert("檔案處理錯誤，請確保格式正確 (必須包含 const allQuestions = [...]; )");
+                console.error(err);
             }
-            return "其他";
-        }
+        };
 
-        function getNote(q) {
-            if (q.includes("QC") || q.includes("手法")) return "精簡解析：N7偏規劃(Plan)，Q7偏數據(Check)分析。";
-            if (q.includes("採購")) return "精簡解析：遵循採購法公平公開原則，注意金額級距規定。";
-            if (q.includes("天") || q.includes("日")) return "精簡解析：注意法定天數計算（日曆天或工作天）。";
-            return "精簡解析：掌握正確選項之定義與規範數值，排除干擾項。";
-        }
+        reader.readAsText(file);
+    }
+</script>
 
-        function processData() {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file) { alert("請先選擇檔案！"); return; }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let content = e.target.result;
-                try {
-                    // 找出 JSON 陣列
-                    let start = content.indexOf('[');
-                    let end = content.lastIndexOf(']') + 1;
-                    let questions = JSON.parse(content.substring(start, end));
-
-                    // 拼裝
-                    questions.forEach(q => {
-                        let idNum = parseInt(q.id);
-                        q.unit = getUnit(idNum);
-                        q.note = getNote(q.q);
-                    });
-
-                    // 輸出檔案
-                    let result = "const allQuestions = " + JSON.stringify(questions, null, 2) + ";";
-                    let blob = new Blob([result], {type: "text/javascript"});
-                    let url = URL.createObjectURL(blob);
-                    let a = document.createElement('a');
-                    a.href = url;
-                    a.download = "quiz_data.js";
-                    a.click();
-                    document.getElementById('status').innerText = "✅ 拼裝完成並已啟動下載！";
-                } catch (err) {
-                    alert("檔案處理出錯，請確認 quiz_data.js 格式正確。");
-                }
-            };
-            reader.readAsText(file);
-        }
-    </script>
 </body>
 </html>
