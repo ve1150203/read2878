@@ -2,74 +2,77 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>工程題庫拼裝工具 - 403-598 標靶版</title>
+    <title>工程題庫拼裝工具 - 完整分類版</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f1f5f9; padding: 40px; color: #1e293b; }
         .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         h2 { color: #2563eb; border-bottom: 3px solid #eff6ff; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
-        .target-box { background: #eff6ff; padding: 15px; border-radius: 10px; font-size: 14px; color: #1e40af; border-left: 5px solid #3b82f6; margin-bottom: 20px; }
+        .status { background: #f0fdf4; padding: 12px; border-radius: 8px; font-size: 14px; color: #166534; margin-bottom: 20px; border: 1px solid #bbf7d0; }
         button { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🎯 403-598 專項解析拼裝器</h2>
-    <div class="target-box">
-        <b>本次強化單元：監造計畫與品質計畫指導</b><br>
-        ● 解析重點：計畫書章節、權責歸屬（監造 vs 廠商）、法規數據。
+    <h2>🛠️ 完整分類拼裝器</h2>
+    <div class="status">
+        ✅ <b>保留 1-2878 完整單元分類</b><br>
+        🎯 <b>僅針對 403-598 提供深度解析</b>
     </div>
     <input type="file" id="fileInput" accept=".js">
     <button onclick="processData()">執行拼裝並下載 quiz_data.js</button>
 </div>
 
 <script>
+    // 完整單元分類表 (1-2878)
     const UNIT_RANGES = [
-        [1, 402, "品質分析與統計"],
+        [1, 222, "單元二：品質管理統計分析與手法(一)"],
+        [223, 402, "單元二：品質管理統計分析與手法(二)"],
         [403, 598, "單元二：第一章 監造計畫與品質計畫指導"],
-        [599, 2878, "其他單元"]
+        [599, 797, "單元二：第五、六章 履約管理與工程進度管控"],
+        [798, 1123, "單元三：工程相關法令與缺失實務"],
+        [1124, 1221, "單元二：第七章 工程界面整合與管理"],
+        [1222, 1382, "單元五：電梯與升降設備品質管理"],
+        [1383, 1652, "單元五：消防與空調設備品質管理"],
+        [1653, 1820, "單元五：給排水與衛生設備品質管理"],
+        [1821, 2052, "單元五：弱電監控與儀控系統品質管理"],
+        [2053, 2194, "單元五：電氣設備品質管理"],
+        [2195, 2385, "單元二：第八章 品質稽核"],
+        [2386, 2606, "單元二：第三章 施工管制與檢驗"],
+        [2607, 2836, "單元二：第四章 工程進料檢驗與管制"],
+        [2837, 2866, "單元一：第一章 公共工程施工品質管理制度理念與導入"],
+        [2867, 2878, "單元一：第二章 政府採購全生命週期概論"]
     ];
 
     function getSpecialNote(qid, qText) {
-        // 嚴格限制解析範圍
+        // 僅對 403-598 進行解析注入
         if (qid < 403 || qid > 598) return "";
 
-        // --- 1. 計畫書歸屬與章節 (403, 408, 416, 499 等) ---
-        if (qText.includes("監造計畫") && qText.includes("章節")) {
-            if (qText.includes("不合格品")) return "筆記：不合格品管制屬於「品質計畫」(廠商管)而非監造計畫。";
+        // --- 403-598 專項解析邏輯 ---
+        if (qText.includes("監造計畫") && (qText.includes("不合格品") || qText.includes("自主檢查"))) {
+            return "關鍵：不合格品管制與自主檢查表屬於「品質計畫」(廠商寫)，不屬於監造計畫。";
         }
-        if (qText.includes("品質計畫") && qText.includes("內容")) {
-            if (qText.includes("施工要領")) return "筆記：施工要領、自主檢查表為品質計畫核心；監造計畫則為抽驗標準。";
+        if (qText.includes("監造計畫") && qText.includes("規模")) return "數值：基準規模為新臺幣 2,000 萬元。";
+        if (qText.includes("開工前")) return "時機：監造計畫與品質計畫皆應於「開工前」核定。";
+        if (qText.includes("H點") || qText.includes("限止點") || qText.includes("停留點")) {
+            return "考點：H點(限止點)指未經監造檢查合格，絕對不可繼續施工。";
         }
-
-        // --- 2. 權責與人員 (420-425, 507-513 等) ---
-        if (qText.includes("監造人員")) return "權責：審查品質計畫、施工圖、進度、計價，執行施工抽查。";
-        if (qText.includes("品管人員")) return "權責：執行內部稽核、統計分析、自主檢查之核章。";
-        if (qText.includes("工地主任")) return "權責：施工技術指導、解決問題、維護安全、管理現場組織。";
-        if (qText.includes("專任工程人員")) return "權責：督察按圖施工、解決技術問題、簽認重要文件。";
-
-        // --- 3. 法規數據與金額 (405, 514, 515, 598 等) ---
-        if (qText.includes("金額") || qText.includes("新臺幣")) {
-            if (qText.includes("監造計畫") || qText.includes("品質計畫")) return "數據：基準規模為 2,000 萬元以上。";
-            if (qText.includes("專職") || qText.includes("一千萬")) return "規定：1,000 萬元以上品管員需專職；2 億元以上需 3 人。";
+        if (qText.includes("分項") && qText.includes("時機")) return "時機：分項計畫應於該項工程「施工前」核定。";
+        if (qText.includes("品管人員")) {
+            if (qText.includes("專職")) return "法規：1,000萬以上需專職；2億以上需3位。";
+            return "職掌：負責內部稽核、統計分析及品管紀錄核章。";
         }
-        if (qText.includes("電表") || qText.includes("高度")) return "數據：集合式電表離地高度 1.5 ~ 2 公尺以上。";
-        if (qText.includes("穿樑") || qText.includes("間距")) return "規範：管路中心間距應大於 3D。";
-        if (qText.includes("軟鐵線") && qText.includes("間距")) return "數據：固定間距以 1 公尺最恰當。";
-
-        // --- 4. 流程與時機 (411, 412, 444, 503 等) ---
-        if (qText.includes("開工前")) return "時機：監造與品質計畫均需於「開工前」完成核定。";
-        if (qText.includes("分項") && qText.includes("時機")) return "時機：分項計畫得於該項工程「施工前」訂定完成。";
-        if (qText.includes("H點") || qText.includes("停留點")) return "重點：H點(限止點)未經監造檢查合格，絕對不可繼續。";
-        if (qText.includes("重複")) return "規定：缺失重複發生 3 次以上應設為檢驗停留點(H點)。";
-
-        // --- 5. 測試定義 (462-468) ---
-        if (qText.includes("運轉測試")) {
-            if (qText.includes("單機")) return "定義：單具設備之獨立測試。";
-            if (qText.includes("系統")) return "定義：相關管路、電氣儀控組設完成後之測試。";
-            if (qText.includes("整體")) return "定義：跨工項介面連結之測試。";
-            if (qText.includes("廠驗")) return "定義：設備出貨前於工廠作的測試。";
+        if (qText.includes("工地主任")) return "職掌：現場老大，負責施工指導、安全管理及界面協調整合。";
+        if (qText.includes("專任工程人員")) return "職掌：技師，負責督察按圖施工、解決重大技術問題、簽認文件。";
+        if (qText.includes("機電") && qText.includes("測試")) {
+            if (qText.includes("單機")) return "定義：單具設備獨立測試。";
+            if (qText.includes("系統")) return "定義：管路儀控組裝後測試。";
+            if (qText.includes("整體")) return "定義：跨工項介面連結測試。";
         }
+        if (qText.includes("穿樑") || qText.includes("間距")) return "規範：管路中心間距需大於 3D。";
+        if (qText.includes("軟鐵線")) return "規範：固定間距以 1 公尺最恰當。";
+        if (qText.includes("高度") && qText.includes("電表")) return "數據：集合式電表離地高度 1.5 ~ 2 公尺以上。";
+        if (qText.includes("重複")) return "規定：缺失重複 3 次以上應設為檢驗停留點(H點)。";
 
         return ""; 
     }
@@ -87,9 +90,11 @@
                 
                 questions.forEach(q => {
                     let idNum = parseInt(q.id);
+                    // 恢復分類邏輯
                     for (let [s, ed, name] of UNIT_RANGES) {
                         if (idNum >= s && idNum <= ed) { q.unit = name; break; }
                     }
+                    // 注入 403-598 專用解析
                     q.note = getSpecialNote(idNum, q.q);
                 });
 
@@ -100,8 +105,8 @@
                 a.download = "quiz_data.js";
                 a.href = url;
                 a.click();
-                alert("✅ 403-598 標靶解析完成，其餘已清空。");
-            } catch (err) { alert("檔案解析失敗！"); }
+                alert("🎉 分類已全數找回！並完成 403-598 標靶解析。");
+            } catch (err) { alert("檔案解析失敗，請確認格式。"); }
         };
         reader.readAsText(fileInput.files[0]);
     }
