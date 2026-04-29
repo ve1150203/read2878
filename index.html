@@ -2,82 +2,45 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程題庫-手機優化讀題版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程題庫-手機下拉版</title>
     <style>
-        :root { --primary: #1e40af; --accent: #2563eb; --bg: #f8fafc; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+        .header-fixed { position: sticky; top: 0; background: #1e40af; color: white; padding: 10px; z-index: 1000; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         
-        /* 頂部固定區優化：手機上改為可橫向捲動的單元列 */
-        .filter-section { 
-            position: sticky; 
-            top: 0; 
-            background: white; 
-            padding: 10px 5px; 
-            z-index: 1000; 
-            border-bottom: 2px solid #e2e8f0; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* 下拉選單樣式：這會節省極大空間 */
+        #unit-select { 
+            width: 95%; 
+            padding: 12px; 
+            font-size: 16px; 
+            border-radius: 8px; 
+            border: none; 
+            margin-top: 5px;
+            background: white;
+            font-weight: bold;
         }
-        
-        .unit-select-box { 
-            display: flex; 
-            flex-wrap: nowrap; /* 強制不換行 */
-            overflow-x: auto;  /* 開啟橫向捲動 */
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 5px;
-            gap: 8px;
-        }
-        
-        /* 隱藏橫向捲動條但保留功能 */
-        .unit-select-box::-webkit-scrollbar { display: none; }
 
-        .unit-btn { 
-            flex: 0 0 auto; /* 防止按鈕被壓縮 */
-            background: #f1f5f9; 
-            border: 1px solid #cbd5e1; 
-            padding: 8px 15px; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            white-space: nowrap; /* 文字不換行 */
-        }
+        .container { max-width: 900px; margin: 0 auto; padding: 15px; }
+        .q-item { background: white; margin-bottom: 20px; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .q-meta { font-size: 12px; color: #64748b; margin-bottom: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
+        .q-text { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 15px; line-height: 1.4; }
         
-        .unit-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-        .container { max-width: 900px; margin: 0 auto; padding: 10px; }
+        .opt-box { padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9; margin-bottom: 8px; font-size: 16px; color: #475569; }
+        .is-correct { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: bold; }
         
-        /* 題目卡片優化 */
-        .q-item { 
-            margin-bottom: 20px; 
-            padding: 15px; 
-            border-radius: 10px; 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-        }
-        .q-meta { margin-bottom: 10px; font-size: 12px; color: #64748b; line-height: 1.4; }
-        .q-id { background: #eff6ff; color: var(--accent); padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
-        .q-text { font-size: 17px; font-weight: bold; color: #1e293b; margin-bottom: 12px; line-height: 1.5; }
-        
-        .opt-box { padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9; color: #475569; margin-bottom: 8px; font-size: 15px; }
-        .opt-box.is-correct { background: #ecfdf5; border-color: #10b981; color: #065f46; font-weight: bold; }
-
-        .ai-note { margin-top: 12px; padding: 10px; background: #fff7ed; border-left: 4px solid #f97316; border-radius: 4px; font-size: 14px; color: #7c2d12; }
-
-        #backToTop { position: fixed; bottom: 20px; right: 15px; width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 50%; display: none; justify-content: center; align-items: center; cursor: pointer; font-size: 20px; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .ai-note { margin-top: 10px; padding: 10px; background: #fff7ed; border-left: 4px solid #f97316; font-size: 14px; color: #7c2d12; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div class="filter-section">
-    <div class="unit-select-box" id="unit-btns">
-        </div>
+<div class="header-fixed">
+    <div style="font-size: 14px; opacity: 0.9;">選擇章節：</div>
+    <select id="unit-select" onchange="filter(this.value)">
+        </select>
 </div>
 
-<div class="container">
-    <div id="read-list">正在載入題庫...</div>
-</div>
-
-<div id="backToTop" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</div>
+<div class="container" id="read-list">
+    </div>
 
 <script src="quiz_data.js"></script>
 <script>
@@ -86,25 +49,20 @@
 
     window.onload = () => {
         if (typeof allQuestions === 'undefined') {
-            document.getElementById('read-list').innerHTML = "錯誤：找不到 quiz_data.js";
+            document.getElementById('read-list').innerHTML = "載入失敗，請檢查 quiz_data.js";
             return;
         }
+        // 產生下拉選單內容
         const units = ['全部', ...new Set(allQuestions.map(q => q.unit))];
-        const btnContainer = document.getElementById('unit-btns');
-        btnContainer.innerHTML = units.map(u => 
-            `<button class="unit-btn ${u==='全部'?'active':''}" onclick="filter('${u}', this)">${u}</button>`
-        ).join('');
+        const select = document.getElementById('unit-select');
+        select.innerHTML = units.map(u => `<option value="${u}">${u}</option>`).join('');
         render();
     };
 
-    function filter(u, btn) {
+    function filter(u) {
         currentUnit = u;
-        document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
         render();
-        window.scrollTo({top: 0});
-        // 讓選中的按鈕自動捲動到中間 (優化體驗)
-        btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function render() {
@@ -113,26 +71,17 @@
         
         list.innerHTML = data.map(q => `
             <div class="q-item">
-                <div class="q-meta">
-                    <span class="q-id">ID: ${q.id}</span><br>
-                    ${q.unit}
-                </div>
+                <div class="q-meta">題號 ${q.id} | ${q.unit}</div>
                 <div class="q-text">${q.q}</div>
-                <div class="opt-list">
+                <div>
                     ${q.o.map((opt, i) => `
-                        <div class="opt-box ${i === ansMap[q.a] ? 'is-correct' : ''}">
-                            ${opt} ${i === ansMap[q.a] ? ' ✓' : ''}
-                        </div>
+                        <div class="opt-box ${i === ansMap[q.a] ? 'is-correct' : ''}">${opt}</div>
                     `).join('')}
                 </div>
                 ${q.note ? `<div class="ai-note">💡 ${q.note}</div>` : ''}
             </div>
         `).join('');
     }
-
-    window.onscroll = () => {
-        document.getElementById("backToTop").style.display = window.scrollY > 500 ? "flex" : "none";
-    };
 </script>
 </body>
 </html>
