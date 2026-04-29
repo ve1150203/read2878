@@ -2,75 +2,74 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>工程題庫拼裝工具 - 極簡精準版</title>
+    <title>工程題庫拼裝工具 - 403-598 標靶版</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; background: #f1f5f9; padding: 40px; color: #1e293b; }
         .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         h2 { color: #2563eb; border-bottom: 3px solid #eff6ff; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
-        .info { background: #fff7ed; padding: 15px; border-radius: 10px; font-size: 14px; color: #9a3412; border-left: 5px solid #f97316; margin-bottom: 20px; }
-        input[type="file"] { width: 100%; padding: 12px; border: 2px dashed #cbd5e1; border-radius: 8px; margin-bottom: 20px; cursor: pointer; }
-        button { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #1d4ed8; }
+        .target-box { background: #eff6ff; padding: 15px; border-radius: 10px; font-size: 14px; color: #1e40af; border-left: 5px solid #3b82f6; margin-bottom: 20px; }
+        button { width: 100%; padding: 15px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🛠️ 題庫精準拼裝器</h2>
-    <div class="info">
-        <b>💡 解析邏輯：</b><br>
-        1. <b>不硬塞：</b> 題目長度短或敘述直觀者，不予解析。<br>
-        2. <b>精準打擊：</b> 只針對數值、公式、權責進行標註。<br>
-        3. <b>去申論：</b> 刪除所有描述性文字，僅留解題數據。
+    <h2>🎯 403-598 專項解析拼裝器</h2>
+    <div class="target-box">
+        <b>本次強化單元：監造計畫與品質計畫指導</b><br>
+        ● 解析重點：計畫書章節、權責歸屬（監造 vs 廠商）、法規數據。
     </div>
-    
     <input type="file" id="fileInput" accept=".js">
     <button onclick="processData()">執行拼裝並下載 quiz_data.js</button>
 </div>
 
 <script>
     const UNIT_RANGES = [
-        [1, 222, "品質分析手法"], [223, 402, "統計分析手法"], [403, 598, "計畫書編製"],
-        [599, 797, "履約管理"], [798, 1123, "相關法規"], [1124, 1221, "界面整合"],
-        [1222, 1382, "電梯工程"], [1383, 1652, "消防空調"], [1653, 1820, "給排水"],
-        [1821, 2052, "弱電監控"], [2053, 2194, "電氣設備"], [2195, 2385, "品質稽核"],
-        [2386, 2606, "施工管制"], [2607, 2836, "進料檢驗"], [2837, 2878, "制度理念"]
+        [1, 402, "品質分析與統計"],
+        [403, 598, "單元二：第一章 監造計畫與品質計畫指導"],
+        [599, 2878, "其他單元"]
     ];
 
     function getSpecialNote(qid, qText) {
-        // --- 負面過濾：題目太短或純敘述題不解析 ---
-        if (qText.length < 20 && !qText.includes("金額") && !qText.includes("Ω")) return "";
+        // 嚴格限制解析範圍
+        if (qid < 403 || qid > 598) return "";
 
-        // --- 1. 計算題與數值 (精確匹配) ---
-        if (qText.includes("機率") || qText.includes("涵蓋")) return "±1σ=68.26%, ±2σ=95.44%, ±3σ=99.73%";
-        if (qText.includes("Cpk")) return "Cpk = min(Cpu, Cpl)";
-        if (qText.includes("絕緣電阻")) {
-            if (qText.includes("150V")) return "0.1 MΩ 以上";
-            if (qText.includes("300V")) return "0.2 MΩ 以上";
-            return "300V~450V：0.4 MΩ";
+        // --- 1. 計畫書歸屬與章節 (403, 408, 416, 499 等) ---
+        if (qText.includes("監造計畫") && qText.includes("章節")) {
+            if (qText.includes("不合格品")) return "筆記：不合格品管制屬於「品質計畫」(廠商管)而非監造計畫。";
         }
-        if (qText.includes("電壓降")) return "幹線 3%, 支路 5%";
-        if (qText.includes("坡度")) return "75mm以下: 1/50, 100mm以上: 1/100";
-        if (qText.includes("1.5") && qText.includes("探測器")) return "離出風口 1.5m 以上";
-        if (qText.includes("5000") || qText.includes("查核金額")) return "查核金額：5,000 萬元";
-        if (qText.includes("150") || qText.includes("公告金額")) return "公告金額：150 萬元";
+        if (qText.includes("品質計畫") && qText.includes("內容")) {
+            if (qText.includes("施工要領")) return "筆記：施工要領、自主檢查表為品質計畫核心；監造計畫則為抽驗標準。";
+        }
 
-        // --- 2. 權責與計畫書 (容易混淆點) ---
-        if (qText.includes("品質計畫")) {
-            if (qText.includes("擬定") || qText.includes("編製")) return "權責：廠商擬定";
-            if (qText.includes("不合格品")) return "出自：品質計畫書";
-        }
-        if (qText.includes("監造計畫")) {
-            if (qText.includes("擬定") || qText.includes("編製")) return "權責：監造擬定";
-            if (qText.includes("抽驗頻率")) return "出自：監造計畫書";
-        }
-        if (qText.includes("一級")) return "廠商自主 (自主檢查表)";
-        if (qText.includes("二級")) return "監造抽驗 (抽查記錄表)";
-        if (qText.includes("三級")) return "機關督導與查核";
+        // --- 2. 權責與人員 (420-425, 507-513 等) ---
+        if (qText.includes("監造人員")) return "權責：審查品質計畫、施工圖、進度、計價，執行施工抽查。";
+        if (qText.includes("品管人員")) return "權責：執行內部稽核、統計分析、自主檢查之核章。";
+        if (qText.includes("工地主任")) return "權責：施工技術指導、解決問題、維護安全、管理現場組織。";
+        if (qText.includes("專任工程人員")) return "權責：督察按圖施工、解決技術問題、簽認重要文件。";
 
-        // --- 3. 採購天數 ---
-        if (qText.includes("正式驗收") && qText.includes("合格")) return "15 日內發給證明書";
-        if (qText.includes("初驗合格")) return "20 日內正式驗收";
+        // --- 3. 法規數據與金額 (405, 514, 515, 598 等) ---
+        if (qText.includes("金額") || qText.includes("新臺幣")) {
+            if (qText.includes("監造計畫") || qText.includes("品質計畫")) return "數據：基準規模為 2,000 萬元以上。";
+            if (qText.includes("專職") || qText.includes("一千萬")) return "規定：1,000 萬元以上品管員需專職；2 億元以上需 3 人。";
+        }
+        if (qText.includes("電表") || qText.includes("高度")) return "數據：集合式電表離地高度 1.5 ~ 2 公尺以上。";
+        if (qText.includes("穿樑") || qText.includes("間距")) return "規範：管路中心間距應大於 3D。";
+        if (qText.includes("軟鐵線") && qText.includes("間距")) return "數據：固定間距以 1 公尺最恰當。";
+
+        // --- 4. 流程與時機 (411, 412, 444, 503 等) ---
+        if (qText.includes("開工前")) return "時機：監造與品質計畫均需於「開工前」完成核定。";
+        if (qText.includes("分項") && qText.includes("時機")) return "時機：分項計畫得於該項工程「施工前」訂定完成。";
+        if (qText.includes("H點") || qText.includes("停留點")) return "重點：H點(限止點)未經監造檢查合格，絕對不可繼續。";
+        if (qText.includes("重複")) return "規定：缺失重複發生 3 次以上應設為檢驗停留點(H點)。";
+
+        // --- 5. 測試定義 (462-468) ---
+        if (qText.includes("運轉測試")) {
+            if (qText.includes("單機")) return "定義：單具設備之獨立測試。";
+            if (qText.includes("系統")) return "定義：相關管路、電氣儀控組設完成後之測試。";
+            if (qText.includes("整體")) return "定義：跨工項介面連結之測試。";
+            if (qText.includes("廠驗")) return "定義：設備出貨前於工廠作的測試。";
+        }
 
         return ""; 
     }
@@ -101,7 +100,8 @@
                 a.download = "quiz_data.js";
                 a.href = url;
                 a.click();
-            } catch (err) { alert("檔案格式不符，請確認是 quiz_data.js"); }
+                alert("✅ 403-598 標靶解析完成，其餘已清空。");
+            } catch (err) { alert("檔案解析失敗！"); }
         };
         reader.readAsText(fileInput.files[0]);
     }
