@@ -121,8 +121,8 @@
 
     <div class="top-panel">
         <div class="mode-tabs">
-            <button id="tab-left" class="tab-btn active" onclick="switchSystemMode('left')">🎯 左選項讀書題庫</button>
-            <button id="tab-right" class="tab-btn" onclick="switchSystemMode('right')">📖 右速記背題模式</button>
+            <button id="tab-left" class="tab-btn active" onclick="switchSystemMode('left')">🎯 讀書題庫</button>
+            <button id="tab-right" class="tab-btn" onclick="switchSystemMode('right')">📖 速記背題模式</button>
         </div>
         <div class="control-bar">
             <select id="course-select-left" class="course-select active" onchange="onCourseFilterChange('left')"></select>
@@ -137,8 +137,8 @@
                 <button class="btn-search" onclick="jumpToTargetId('right')">🔍 快速跳轉</button>
             </div>
 
-            <button id="resume-left-btn" class="btn-resume" onclick="resumeLocation('left')">⏱️ 續讀上次點題 (左)</button>
-            <button id="resume-right-btn" class="btn-resume" onclick="resumeLocation('right')">⏱️ 續讀書籤題 (右)</button>
+            <button id="resume-left-btn" class="btn-resume" onclick="resumeLocation('left')">⏱️ 續讀點題</button>
+            <button id="resume-right-btn" class="btn-resume" onclick="resumeLocation('right')">⏱️ 續速記背題</button>
             
             <div id="left-global-controls" class="row-btns">
                 <button class="btn-action" onclick="globalToggleLeftAnswers(true)">👁️ 一鍵全亮答案</button>
