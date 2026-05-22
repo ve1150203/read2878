@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>行動線上題庫 - 雙軌完全獨立進度版</title>
+    <title>行動線上題庫 - 雙軌完全獨立進度跳轉版</title>
     <style>
         :root {
             --primary: #2b6cb0;
@@ -45,16 +45,23 @@
         
         /* 篩選與按鈕控制列 */
         .control-bar { padding: 8px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #edf2f7; align-items: center; }
-        .row-btns { display: flex; gap: 8px; width: 100%; justify-content: center; }
+        .row-btns { display: flex; gap: 8px; width: 100%; justify-content: center; align-items: center; }
         
         /* 課程下拉選單樣式 */
         .course-select { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 0.95rem; font-weight: bold; color: #2d3748; background-color: #f7fafc; display: none; }
         .course-select.active { display: block; }
 
+        /* 搜尋跳轉列樣式 */
+        .search-container { display: none; width: 100%; gap: 6px; }
+        .search-container.active { display: flex; }
+        .search-input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 0.9rem; }
+        .btn-search { background: #4a5568; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+        .btn-search:active { opacity: 0.8; }
+
         .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: bold; cursor: pointer; border: 1px solid #cbd5e0; background: white; color: #4a5568; }
         .btn-action:active { background: #edf2f7; }
 
-        .btn-resume { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.88rem; cursor: pointer; display: none; width: 100%; max-width: 300px; margin: 0 auto; }
+        .btn-resume { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.88rem; cursor: pointer; display: none; width: 100%; max-width: 300px; margin: 0 auto; text-align: center; }
         .btn-resume:active { opacity: 0.8; }
 
         /* 中間獨立滾動區 */
@@ -121,6 +128,15 @@
             <select id="course-select-left" class="course-select active" onchange="onCourseFilterChange('left')"></select>
             <select id="course-select-right" class="course-select" onchange="onCourseFilterChange('right')"></select>
 
+            <div id="search-bar-left" class="search-container active">
+                <input type="text" id="search-input-left" class="search-input" placeholder="請輸入原廠題號 (例如: 25)..." onkeydown="if(event.key==='Enter') jumpToTargetId('left')">
+                <button class="btn-search" onclick="jumpToTargetId('left')">🔍 快速跳轉</button>
+            </div>
+            <div id="search-bar-right" class="search-container">
+                <input type="text" id="search-input-right" class="search-input" placeholder="請輸入原廠題號 (例如: 25)..." onkeydown="if(event.key==='Enter') jumpToTargetId('right')">
+                <button class="btn-search" onclick="jumpToTargetId('right')">🔍 快速跳轉</button>
+            </div>
+
             <button id="resume-left-btn" class="btn-resume" onclick="resumeLocation('left')">⏱️ 續讀上次點題 (左)</button>
             <button id="resume-right-btn" class="btn-resume" onclick="resumeLocation('right')">⏱️ 續讀書籤題 (右)</button>
             
@@ -156,9 +172,12 @@
         let leftShowState = {}; 
         let isLeftGlobalAllShow = false;
 
+        // 💡 核心提取邏輯：精準切割，只留下原廠（舊）題號純數字！
         function getPureId(rawId) {
             if (!rawId) return "";
+            // 先用 < 切開，只拿前半段（例如 "25 <small..." 就會切成 "25 "）
             let clean = String(rawId).split('<')[0]; 
+            // 只保留純數字，並去掉頭尾空格
             return clean.replace(/[^0-9]/g, '').trim();
         }
 
@@ -225,6 +244,9 @@
             
             document.getElementById('course-select-left').classList.toggle('active', mode === 'left');
             document.getElementById('course-select-right').classList.toggle('active', mode === 'right');
+            
+            document.getElementById('search-bar-left').classList.toggle('active', mode === 'left');
+            document.getElementById('search-bar-right').classList.toggle('active', mode === 'right');
             
             document.getElementById('left-global-controls').style.display = (mode === 'left') ? 'flex' : 'none';
             
@@ -325,7 +347,6 @@
 
                     const correctOpt = q.ans.trim().toUpperCase().replace(/[^A-D]/g, '');
                     
-                    // 找出正確答案的純文字
                     let correctText = '';
                     if (correctOpt === 'A') correctText = q.a;
                     else if (correctOpt === 'B') correctText = q.b;
@@ -336,12 +357,10 @@
                     const btnText = isMarked ? "📌 已記續讀" : "🔖 記到續讀";
                     const btnClass = isMarked ? "bookmark-btn active" : "bookmark-btn";
 
-                    // 💡 關鍵：自動偵測答案中是否包含「以上皆是」或「以上皆對」
                     const isAllOfAbove = correctText.includes('以上皆是') || correctText.includes('以上皆對');
 
                     let contentHtml = '';
                     if (isAllOfAbove) {
-                        // 💡 如果是以上皆是，直接攤開四個選項，並把正解標上綠底框
                         let aClass = (correctOpt === 'A') ? 'correct-target' : '';
                         let bClass = (correctOpt === 'B') ? 'correct-target' : '';
                         let cClass = (correctOpt === 'C') ? 'correct-target' : '';
@@ -354,7 +373,6 @@
                             <div class="option-label ${dClass}">${q.d}</div>
                         `;
                     } else {
-                        // 💡 普通題目，繼續維持原本右邊模式極簡的單行顯示
                         contentHtml = `<div class="answer-box">👉 ${correctText}</div>`;
                     }
 
@@ -373,6 +391,65 @@
             }
 
             listContainer.appendChild(fragment);
+        }
+
+        // ================= 💡 精準原廠題號跳轉定位演算法 =================
+        function jumpToTargetId(mode) {
+            const inputEl = document.getElementById(`search-input-${mode}`);
+            if (!inputEl) return;
+
+            // 把使用者輸入的內容，去頭尾空格
+            const inputQuery = inputEl.value.trim();
+            if (!inputQuery) {
+                alert("請輸入要尋找的原廠題號！");
+                return;
+            }
+
+            const allCleanData = getCleanQuestions();
+            
+            // 💡 改為精準絕對比對：使用者輸入的字串，必須完全等於剥離後純淨的原廠舊題號！
+            const foundQ = allCleanData.find(q => {
+                return getPureId(q.id) === inputQuery;
+            });
+
+            if (!foundQ) {
+                alert(`找不到原廠題號為「${inputQuery}」的題目，請重新確認！`);
+                return;
+            }
+
+            const targetPureId = getPureId(foundQ.id);
+
+            // 1. 強制將該模式的下拉選單切換至該題目所屬的獨立課程
+            document.getElementById(`course-select-${mode}`).value = foundQ.course;
+
+            // 2. 重新計算在該篩選課程下，這題排在第幾筆，並推算出全新分頁頁碼
+            const filteredData = getFilteredQuestions(mode);
+            const targetIdx = filteredData.findIndex(q => getPureId(q.id) === targetPureId);
+            
+            if (targetIdx === -1) return;
+
+            const calculatedPage = Math.floor(targetIdx / pageSize) + 1;
+
+            // 3. 回寫各自獨立的頁碼大變數並渲染
+            if (mode === 'left') {
+                currentPageLeft = calculatedPage;
+            } else {
+                currentPageRight = calculatedPage;
+            }
+
+            renderWorkspace();
+
+            // 4. 平滑滾動至該題中央
+            setTimeout(() => {
+                const targetCard = document.getElementById(`${mode}-card-${targetPureId}`);
+                if (targetCard) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // 卡片淡黃色提示
+                    targetCard.style.transition = "background-color 0.5s";
+                    targetCard.style.backgroundColor = "#fffaf0";
+                    setTimeout(() => targetCard.style.backgroundColor = "white", 1000);
+                }
+            }, 150);
         }
 
         // ================= 左邊控制 =================
