@@ -2,201 +2,500 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工程題庫-智慧續讀版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>行動線上題庫 - 雙軌完全獨立進度版</title>
     <style>
-        :root { --primary: #1e40af; --accent: #f59e0b; --bg: #f8fafc; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .container { max-width: 900px; margin: 0 auto; background: white; min-height: 100vh; padding: 20px; padding-bottom: 100px; }
+        :root {
+            --primary: #2b6cb0;
+            --success-bg: #e6fffa;
+            --success-border: #319795;
+            --success-text: #234e52;
+            --bg: #f7fafc;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         
-        .header-nav { position: sticky; top: 0; background: white; padding: 12px; z-index: 1000; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .filter-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
-        .unit-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; background: #fff; cursor: pointer; }
-
-        .tools-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 10px; }
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg); 
+            color: #2d3748;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
         
-        .q-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 15px; cursor: pointer; border-left: 5px solid transparent; }
-        .q-item:active { background: #f0f9ff; }
-        .q-meta { color: #64748b; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .q-text { font-weight: bold; font-size: 1.1rem; line-height: 1.5; margin-bottom: 12px; display: block; color: #1e293b; }
-        .opt { display: block; margin-bottom: 8px; color: #475569; padding: 8px; border-radius: 6px; background: #f8fafc; }
+        /* 頂部固定面板 */
+        .top-panel { 
+            background: white; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
+            z-index: 1000; 
+            max-width: 600px; 
+            width: 100%;
+            margin: 0 auto; 
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 頂部左右大頁籤開關 */
+        .mode-tabs { display: flex; width: 100%; border-bottom: 2px solid #e2e8f0; }
+        .tab-btn { flex: 1; padding: 14px; background: #edf2f7; text-align: center; font-weight: bold; font-size: 1rem; border: none; cursor: pointer; color: #4a5568; transition: all 0.2s; }
+        .tab-btn.active { background: white; color: var(--primary); border-bottom: 3px solid var(--primary); }
         
-        .ans-area { margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: bold; border: 1px solid #bbf7d0; display: none; }
-        .ans-area.show { display: block; }
+        /* 篩選與按鈕控制列 */
+        .control-bar { padding: 8px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #edf2f7; align-items: center; }
+        .row-btns { display: flex; gap: 8px; width: 100%; justify-content: center; }
+        
+        /* 課程下拉選單樣式 */
+        .course-select { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 0.95rem; font-weight: bold; color: #2d3748; background-color: #f7fafc; display: none; }
+        .course-select.active { display: block; }
 
-        .float-btns { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
-        .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; color: white; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        #resume-btn { background: var(--accent); display: none; font-size: 0.8rem; line-height: 1.2; }
-        #top-btn { background: var(--primary); font-size: 1.5rem; }
+        .btn-action { padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: bold; cursor: pointer; border: 1px solid #cbd5e0; background: white; color: #4a5568; }
+        .btn-action:active { background: #edf2f7; }
 
-        .btn { padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-resume { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.88rem; cursor: pointer; display: none; width: 100%; max-width: 300px; margin: 0 auto; }
+        .btn-resume:active { opacity: 0.8; }
+
+        /* 中間獨立滾動區 */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        .quiz-card { background: white; padding: 14px; margin-bottom: 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 4px solid #cbd5e0; }
+        
+        /* 抬頭與書籤 */
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; }
+        .q-title { font-size: 1rem; line-height: 1.4; color: #2d3748; font-weight: 500; }
+        
+        /* 真實原廠題號樣式 */
+        .q-num { font-size: 1.05rem; font-weight: 800; color: #2b6cb0; margin-right: 8px; display: inline-block; background: #ebf8ff; padding: 2px 8px; border-radius: 4px; border: 1px solid #bee3f8; white-space: nowrap; vertical-align: middle; }
+
+        /* 右邊模式專用書籤按鈕 */
+        .bookmark-btn { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .bookmark-btn.active { background: #ecc94b; color: #744210; border-color: #d69e2e; }
+
+        /* 左邊與右邊「以上皆是」模式選項樣式 */
+        .option-label { display: block; font-size: 0.9rem; margin: 6px 0; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; cursor: pointer; background: #fff; transition: background-color 0.1s; }
+        .option-label.correct-target { background-color: var(--success-bg) !important; color: var(--success-text) !important; font-weight: bold; border: 1px solid var(--success-border) !important; }
+
+        /* 右邊模式專用：直接顯示正確答案框 */
+        .answer-box { font-size: 0.95rem; margin: 8px 0 4px 0; padding: 10px 12px; border-radius: 6px; background-color: var(--success-bg); color: var(--success-text); font-weight: bold; border: 1px solid var(--success-border); }
+        
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 0.75rem; color: #a0aec0; }
+        .course-tag { background: #edf2f7; color: #718096; padding: 2px 6px; border-radius: 4px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* 底部固定分頁導覽列 */
+        .pagination-panel {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            flex-shrink: 0;
+            z-index: 1000;
+        }
+        .page-btn { background: #edf2f7; border: 1px solid #cbd5e0; padding: 8px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; color: #4a5568; font-size: 0.9rem; }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-info { font-size: 0.9rem; font-weight: bold; color: #4a5568; }
     </style>
 </head>
 <body>
 
-<div class="header-nav">
-    <div class="filter-row">
-        <select id="unit-dropdown" class="unit-select" onchange="handleSelectChange(this.value)"></select>
-    </div>
-    <div class="tools-row">
-        <span id="status-text" style="font-weight:bold; color:var(--primary);">載入中...</span>
-        <button class="btn" onclick="toggleAllAns()" style="background:#64748b;">顯/隱答案</button>
-        <div style="font-size: 14px;">
-            跳題：<input type="number" id="jump-id" style="width:50px; padding:5px; border-radius:4px; border:1px solid #ccc;">
-            <button class="btn" onclick="jumpTo()" style="padding:5px 10px;">Go</button>
+    <div class="top-panel">
+        <div class="mode-tabs">
+            <button id="tab-left" class="tab-btn active" onclick="switchSystemMode('left')">🎯 左選項讀書題庫</button>
+            <button id="tab-right" class="tab-btn" onclick="switchSystemMode('right')">📖 右速記背題模式</button>
+        </div>
+        <div class="control-bar">
+            <select id="course-select-left" class="course-select active" onchange="onCourseFilterChange('left')"></select>
+            <select id="course-select-right" class="course-select" onchange="onCourseFilterChange('right')"></select>
+
+            <button id="resume-left-btn" class="btn-resume" onclick="resumeLocation('left')">⏱️ 續讀上次點題 (左)</button>
+            <button id="resume-right-btn" class="btn-resume" onclick="resumeLocation('right')">⏱️ 續讀書籤題 (右)</button>
+            
+            <div id="left-global-controls" class="row-btns">
+                <button class="btn-action" onclick="globalToggleLeftAnswers(true)">👁️ 一鍵全亮答案</button>
+                <button class="btn-action" onclick="globalToggleLeftAnswers(false)">🙈 一鍵全隱答案</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="container">
-    <div id="main-list"></div>
-    <div id="pagination" style="text-align: center; margin-top: 25px; display:none;">
-        <button class="btn" onclick="changePage(-1)">上一頁</button>
-        <button class="btn" onclick="changePage(1)" style="margin-left:20px;">下一頁</button>
+    <div class="main-content" id="main-scroll-container">
+        <div id="quiz-list"></div>
     </div>
-</div>
 
-<div class="float-btns">
-    <button id="resume-btn" class="f-btn" onclick="goToLastBookmark()">續讀<br><span id="last-num"></span></button>
-    <button id="top-btn" class="f-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
-</div>
+    <div class="pagination-panel">
+        <button id="prev-page-btn" class="page-btn" onclick="changePage(-1)">◀ 上一頁</button>
+        <span id="page-info-text" class="page-info">第 1 / 1 頁</span>
+        <button id="next-page-btn" class="page-btn" onclick="changePage(1)">下一頁 ▶</button>
+    </div>
 
-<script src="quiz_data.js"></script>
-<script>
-    const UNIT_CONFIG = [
-        [1, 222, "單元二：第三章 品質分析方法與應用(共222題)"],
-        [223, 402, "單元二：第二章 統計分析方法與應用(共180題)"],
-        [403, 598, "單元二：第一章 監造計畫與品質計畫指導(共196題)"],
-        [599, 649, "永續公共工程(共51題)"],
-        [650, 797, "單元一：第三章 公共工程履約管理(共148題)"],
-        [798, 1123, "單元一：第二章 公共工程管理相關法規概要(共326題)"],
-        [1124, 1221, "單元二：第六章 建築工程之界面整合(共98題)"],
-        [1222, 1382, "單元二：第五章 電梯設備工程品質管理(共161題)"],
-        [1383, 1652, "單元二：第四章 消防設備及空調設備工程品質管理實務(共270題)"],
-        [1653, 1820, "單元二：第三章 給排水衛生設備工程品質管理實務(共168題)"],
-        [1821, 2052, "單元二：第二章 弱電(含中央監控)設備工程品質管理實務(共232題)"],
-        [2053, 2194, "單元二：第一章 電氣設備工程品質管理實務(共142題)"],
-        [2195, 2385, "單元二：第六章 工程品質稽核(共191題)"],
-        [2386, 2606, "單元二：第五章 施工管制與檢驗(共221題)"],
-        [2607, 2836, "單元二：第四章 工程進料檢驗與管制(共230題)"],
-        [2837, 2866, "單元一：第一章 公共工程施工品質管理制度理念與導入(共30題)"],
-        [2867, 2878, "政府採購全生命週期概論(共12題)"]
-    ];
+    <script src="questions.js"></script>
 
-    let currentUnit = '全部';
-    let startIdx = 0;
-    let pageSize = 50;
-    let allShow = false;
-    let filteredData = [];
-
-    window.onload = () => {
-        if (typeof allQuestions === 'undefined') return;
-
-        // 初始化題目單元標籤
-        allQuestions.forEach(q => {
-            const idNum = parseInt(q.id);
-            const found = UNIT_CONFIG.find(u => idNum >= u[0] && idNum <= u[1]);
-            q.unit = found ? found[2] : "其他";
-        });
-
-        // 下拉選單
-        const dropdown = document.getElementById('unit-dropdown');
-        dropdown.innerHTML = ['全部', ...UNIT_CONFIG.map(u => u[2])].map(u => `<option value="${u}">${u}</option>`).join('');
-
-        // 檢查上次書籤
-        const savedId = localStorage.getItem('read_exact_id');
-        if (savedId) {
-            document.getElementById('resume-btn').style.display = 'block';
-            document.getElementById('last-num').innerText = savedId;
-        }
-
-        updateFilteredData();
-        render();
-    };
-
-    function handleSelectChange(val) {
-        currentUnit = val;
-        startIdx = 0;
-        updateFilteredData();
-        render();
-        window.scrollTo(0, 0);
-    }
-
-    function updateFilteredData() {
-        filteredData = currentUnit === '全部' ? allQuestions : allQuestions.filter(q => q.unit === currentUnit);
-        document.getElementById('pagination').style.display = filteredData.length > pageSize ? 'block' : 'none';
-    }
-
-    function render() {
-        const list = document.getElementById('main-list');
-        const displayData = filteredData.slice(startIdx, startIdx + pageSize);
-        document.getElementById('status-text').innerText = `${currentUnit} (${startIdx+1}~${Math.min(startIdx+pageSize, filteredData.length)})`;
+    <script>
+        let currentSystemMode = 'left';
         
-        list.innerHTML = displayData.map((q, i) => `
-            <div class="q-item" id="q-block-${q.id}" data-real-id="${q.id}" onclick="toggleAns('${q.id}')">
-                <div class="q-meta"><span>#${q.id}</span><span>${q.unit}</span></div>
-                <span class="q-text">${q.q}</span>
-                <div class="opt-list">${q.o.map(opt => `<span class="opt">${opt}</span>`).join('')}</div>
-                <div class="ans-area ${allShow ? 'show' : ''}" id="ans-${q.id}">💡 答案：(${q.a})</div>
-            </div>
-        `).join('');
-    }
-
-    function toggleAns(id) { document.getElementById(`ans-${id}`).classList.toggle('show'); }
-    function toggleAllAns() { allShow = !allShow; render(); }
-
-    function changePage(dir) {
-        let next = startIdx + (dir * pageSize);
-        if (next >= 0 && next < filteredData.length) {
-            startIdx = next;
-            render();
-            window.scrollTo(0, 0);
-        }
-    }
-
-    // 核心修正：跳轉功能的整合
-    function jumpTo(targetId = null) {
-        const val = targetId || parseInt(document.getElementById('jump-id').value);
-        if (!val) return;
+        // 左右各自獨立管理自己的「當前頁碼」
+        let currentPageLeft = 1;
+        let currentPageRight = 1;
         
-        const targetQ = allQuestions.find(q => q.id == val);
-        if (targetQ) {
-            // 1. 強制同步下拉選單
-            currentUnit = targetQ.unit;
-            document.getElementById('unit-dropdown').value = currentUnit;
-            updateFilteredData();
-            
-            // 2. 計算在該單元中的頁碼
-            const idxInFiltered = filteredData.findIndex(q => q.id == val);
-            startIdx = Math.floor(idxInFiltered / pageSize) * pageSize;
-            
-            render();
-            
-            // 3. 捲動到該題目
-            setTimeout(() => {
-                const el = document.getElementById(`q-block-${val}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
-        }
-    }
+        const pageSize = 50; 
 
-    window.onscroll = () => {
-        const items = document.querySelectorAll('.q-item');
-        for (let item of items) {
-            const r = item.getBoundingClientRect();
-            if (r.top >= 0 && r.top <= 200) {
-                const id = item.getAttribute('data-real-id');
-                localStorage.setItem('read_exact_id', id);
-                break;
+        // 左邊獨立記憶庫
+        let leftShowState = {}; 
+        let isLeftGlobalAllShow = false;
+
+        function getPureId(rawId) {
+            if (!rawId) return "";
+            let clean = String(rawId).split('<')[0]; 
+            return clean.replace(/[^0-9]/g, '').trim();
+        }
+
+        function getCleanQuestions() {
+            if (typeof allQuestions === 'undefined' || !Array.isArray(allQuestions)) return [];
+            return allQuestions.filter(q => {
+                if (!q.id || !q.title) return false;
+                let idStr = String(q.id).trim();
+                let titleStr = String(q.title).trim();
+                if (idStr.startsWith("序號") || idStr.includes("序號") || titleStr === "題目" || titleStr === "") return false;
+                return true;
+            });
+        }
+
+        // 根據「當前模式」各自的下拉選單獨立過濾
+        function getFilteredQuestions(mode) {
+            const allData = getCleanQuestions();
+            const selectMenu = document.getElementById(`course-select-${mode}`);
+            if (!selectMenu) return allData;
+            
+            const selectedCourse = selectMenu.value;
+            if (!selectedCourse || selectedCourse === 'all') {
+                return allData;
+            }
+            return allData.filter(q => q.course === selectedCourse);
+        }
+
+        window.onload = function() {
+            initCourseSelector('left');
+            initCourseSelector('right');
+            renderWorkspace();
+        };
+
+        function initCourseSelector(mode) {
+            const allData = getCleanQuestions();
+            const menu = document.getElementById(`course-select-${mode}`);
+            const courses = [...new Set(allData.map(q => q.course))].filter(Boolean);
+            
+            let html = `<option value="all">★ 全部課程 (共 ${allData.length} 題)</option>`;
+            courses.forEach(c => {
+                const count = allData.filter(q => q.course === c).length;
+                html += `<option value="${c}">${c} (${count} 題)</option>`;
+            });
+            menu.innerHTML = html;
+        }
+
+        // 某一邊選單變更，只影響那一邊的頁碼與畫面
+        function onCourseFilterChange(mode) {
+            if (mode === 'left') {
+                currentPageLeft = 1;
+            } else {
+                currentPageRight = 1;
+            }
+            renderWorkspace();
+            document.getElementById('main-scroll-container').scrollTop = 0;
+        }
+
+        // 切換系統大頁籤
+        function switchSystemMode(mode) {
+            currentSystemMode = mode;
+            
+            document.getElementById('tab-left').classList.toggle('active', mode === 'left');
+            document.getElementById('tab-right').classList.toggle('active', mode === 'right');
+            
+            document.getElementById('course-select-left').classList.toggle('active', mode === 'left');
+            document.getElementById('course-select-right').classList.toggle('active', mode === 'right');
+            
+            document.getElementById('left-global-controls').style.display = (mode === 'left') ? 'flex' : 'none';
+            
+            renderWorkspace();
+            document.getElementById('main-scroll-container').scrollTop = 0;
+        }
+
+        // 分頁點擊事件
+        function changePage(direction) {
+            if (currentSystemMode === 'left') {
+                currentPageLeft += direction;
+            } else {
+                currentPageRight += direction;
+            }
+            renderWorkspace();
+            document.getElementById('main-scroll-container').scrollTop = 0;
+        }
+
+        // 渲染核心
+        function renderWorkspace() {
+            const displayData = getFilteredQuestions(currentSystemMode);
+            const totalQuestions = displayData.length;
+            const totalPages = Math.ceil(totalQuestions / pageSize) || 1;
+
+            let currentPage = (currentSystemMode === 'left') ? currentPageLeft : currentPageRight;
+
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            if (currentSystemMode === 'left') {
+                currentPageLeft = currentPage;
+            } else {
+                currentPageRight = currentPage;
+            }
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalQuestions);
+            const pageData = displayData.slice(startIndex, endIndex);
+
+            document.getElementById('page-info-text').textContent = `第 ${currentPage} / ${totalPages} 頁 (本區共 ${totalQuestions} 題)`;
+            document.getElementById('prev-page-btn').disabled = (currentPage === 1);
+            document.getElementById('next-page-btn').disabled = (currentPage === totalPages);
+
+            const listContainer = document.getElementById('quiz-list');
+            listContainer.innerHTML = '';
+            
+            document.getElementById('resume-left-btn').style.display = (currentSystemMode === 'left' && localStorage.getItem('track_left_id')) ? 'block' : 'none';
+            document.getElementById('resume-right-btn').style.display = (currentSystemMode === 'right' && localStorage.getItem('track_right_id')) ? 'block' : 'none';
+
+            const fragment = document.createDocumentFragment();
+
+            if (currentSystemMode === 'left') {
+                pageData.forEach((q) => {
+                    const card = document.createElement('div');
+                    card.className = 'quiz-card';
+                    let pId = getPureId(q.id);
+                    card.id = `left-card-${pId}`;
+
+                    const correctOpt = q.ans.trim().toUpperCase().replace(/[^A-D]/g, '');
+                    
+                    let isVisible = isLeftGlobalAllShow; 
+                    if (leftShowState[pId] !== undefined) {
+                        isVisible = leftShowState[pId];
+                    }
+
+                    let aClass = '', bClass = '', cClass = '', dClass = '';
+                    if (isVisible) {
+                        if (correctOpt === 'A') aClass = 'correct-target';
+                        if (correctOpt === 'B') bClass = 'correct-target';
+                        if (correctOpt === 'C') cClass = 'correct-target';
+                        if (correctOpt === 'D') dClass = 'correct-target';
+                    }
+
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div class="q-title"><span class="q-num">No. ${q.id}</span>${q.title}</div>
+                        </div>
+                        <div class="option-label ${aClass}" onclick="clickLeftOptionToggle('${pId}', '${correctOpt}')">${q.a}</div>
+                        <div class="option-label ${bClass}" onclick="clickLeftOptionToggle('${pId}', '${correctOpt}')">${q.b}</div>
+                        <div class="option-label ${cClass}" onclick="clickLeftOptionToggle('${pId}', '${correctOpt}')">${q.c}</div>
+                        <div class="option-label ${dClass}" onclick="clickLeftOptionToggle('${pId}', '${correctOpt}')">${q.d}</div>
+                        <div class="card-footer">
+                            <span class="course-tag">📌 ${q.course}</span>
+                        </div>
+                    `;
+                    fragment.appendChild(card);
+                });
+
+            } else {
+                const savedRightId = localStorage.getItem('track_right_id');
+
+                pageData.forEach((q) => {
+                    const card = document.createElement('div');
+                    card.className = 'quiz-card';
+                    let pId = getPureId(q.id);
+                    card.id = `right-card-${pId}`;
+                    card.style.borderLeft = "4px solid #319795";
+
+                    const correctOpt = q.ans.trim().toUpperCase().replace(/[^A-D]/g, '');
+                    
+                    // 找出正確答案的純文字
+                    let correctText = '';
+                    if (correctOpt === 'A') correctText = q.a;
+                    else if (correctOpt === 'B') correctText = q.b;
+                    else if (correctOpt === 'C') correctText = q.c;
+                    else if (correctOpt === 'D') correctText = q.d;
+
+                    const isMarked = (savedRightId === pId);
+                    const btnText = isMarked ? "📌 已記續讀" : "🔖 記到續讀";
+                    const btnClass = isMarked ? "bookmark-btn active" : "bookmark-btn";
+
+                    // 💡 關鍵：自動偵測答案中是否包含「以上皆是」或「以上皆對」
+                    const isAllOfAbove = correctText.includes('以上皆是') || correctText.includes('以上皆對');
+
+                    let contentHtml = '';
+                    if (isAllOfAbove) {
+                        // 💡 如果是以上皆是，直接攤開四個選項，並把正解標上綠底框
+                        let aClass = (correctOpt === 'A') ? 'correct-target' : '';
+                        let bClass = (correctOpt === 'B') ? 'correct-target' : '';
+                        let cClass = (correctOpt === 'C') ? 'correct-target' : '';
+                        let dClass = (correctOpt === 'D') ? 'correct-target' : '';
+
+                        contentHtml = `
+                            <div class="option-label ${aClass}">${q.a}</div>
+                            <div class="option-label ${bClass}">${q.b}</div>
+                            <div class="option-label ${cClass}">${q.c}</div>
+                            <div class="option-label ${dClass}">${q.d}</div>
+                        `;
+                    } else {
+                        // 💡 普通題目，繼續維持原本右邊模式極簡的單行顯示
+                        contentHtml = `<div class="answer-box">👉 ${correctText}</div>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div class="q-title"><span class="q-num">No. ${q.id}</span>${q.title}</div>
+                            <button class="${btnClass}" id="book-${pId}" onclick="toggleRightBookmark('${pId}')">${btnText}</button>
+                        </div>
+                        ${contentHtml}
+                        <div class="card-footer">
+                            <span class="course-tag">📌 ${q.course}</span>
+                        </div>
+                    `;
+                    fragment.appendChild(card);
+                });
+            }
+
+            listContainer.appendChild(fragment);
+        }
+
+        // ================= 左邊控制 =================
+        function clickLeftOptionToggle(pId, correctOpt) {
+            localStorage.setItem('track_left_id', pId);
+            
+            let isCurrentlyShow = isLeftGlobalAllShow;
+            if (leftShowState[pId] !== undefined) {
+                isCurrentlyShow = leftShowState[pId];
+            }
+            leftShowState[pId] = !isCurrentlyShow;
+
+            refreshSingleLeftCard(pId, correctOpt);
+        }
+
+        function globalToggleLeftAnswers(shouldShow) {
+            isLeftGlobalAllShow = shouldShow;
+            leftShowState = {}; 
+            renderWorkspace();
+        }
+
+        function refreshSingleLeftCard(pId, correctOpt) {
+            const card = document.getElementById(`left-card-${pId}`);
+            if (!card) return;
+
+            let isVisible = isLeftGlobalAllShow;
+            if (leftShowState[pId] !== undefined) {
+                isVisible = leftShowState[pId];
+            }
+
+            const labels = card.getElementsByClassName('option-label');
+            const optIdxMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+
+            for (let label of labels) {
+                label.classList.remove('correct-target');
+            }
+
+            if (isVisible && optIdxMap[correctOpt] !== undefined) {
+                labels[optIdxMap[correctOpt]].classList.add('correct-target');
             }
         }
-        document.getElementById('top-btn').style.display = window.pageYOffset > 500 ? 'block' : 'none';
-    };
 
-    function goToLastBookmark() {
-        const savedId = localStorage.getItem('read_exact_id');
-        if (savedId) jumpTo(savedId);
-    }
-</script>
+        // ================= 右邊控制 =================
+        function toggleRightBookmark(pId) {
+            const oldRightId = localStorage.getItem('track_right_id');
+
+            if (oldRightId === pId) {
+                localStorage.removeItem('track_right_id');
+                const btn = document.getElementById(`book-${pId}`);
+                if (btn) {
+                    btn.textContent = "🔖 記到續讀";
+                    btn.classList.remove('active');
+                }
+            } else {
+                if (oldRightId) {
+                    const oldBtn = document.getElementById(`book-${oldRightId}`);
+                    if (oldBtn) {
+                        oldBtn.textContent = "🔖 記到續讀";
+                        oldBtn.classList.remove('active');
+                    }
+                }
+                localStorage.setItem('track_right_id', pId);
+                const currentBtn = document.getElementById(`book-${pId}`);
+                if (currentBtn) {
+                    currentBtn.textContent = "📌 已記續讀";
+                    currentBtn.classList.add('active');
+                }
+            }
+            
+            document.getElementById('resume-right-btn').style.display = (localStorage.getItem('track_right_id')) ? 'block' : 'none';
+        }
+
+        // ================= 左右完全獨立的續讀定位演算法 =================
+        function resumeLocation(targetSide) {
+            const allCleanData = getCleanQuestions();
+            
+            if (targetSide === 'left') {
+                const leftId = localStorage.getItem('track_left_id');
+                if (!leftId) return;
+
+                const targetQ = allCleanData.find(q => getPureId(q.id) === leftId);
+                if (!targetQ) return;
+
+                document.getElementById('course-select-left').value = targetQ.course;
+
+                const filteredData = getFilteredQuestions('left');
+                const targetIdx = filteredData.findIndex(q => getPureId(q.id) === leftId);
+                if (targetIdx === -1) return;
+
+                currentPageLeft = Math.floor(targetIdx / pageSize) + 1;
+                renderWorkspace();
+
+                setTimeout(() => {
+                    const targetCard = document.getElementById(`left-card-${leftId}`);
+                    if (targetCard) {
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 150);
+
+            } else {
+                const rightId = localStorage.getItem('track_right_id');
+                if (!rightId) return;
+
+                const targetQ = allCleanData.find(q => getPureId(q.id) === rightId);
+                if (!targetQ) return;
+
+                document.getElementById('course-select-right').value = targetQ.course;
+
+                const filteredData = getFilteredQuestions('right');
+                const targetIdx = filteredData.findIndex(q => getPureId(q.id) === rightId);
+                if (targetIdx === -1) return;
+
+                currentPageRight = Math.floor(targetIdx / pageSize) + 1;
+                renderWorkspace();
+
+                setTimeout(() => {
+                    const targetCard = document.getElementById(`right-card-${rightId}`);
+                    if (targetCard) {
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 150);
+            }
+        }
+    </script>
 </body>
 </html>
